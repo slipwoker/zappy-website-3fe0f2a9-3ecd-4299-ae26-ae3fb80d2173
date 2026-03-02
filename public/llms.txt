@@ -1,0 +1,59 @@
+# Business — Generative Engine Optimization Map
+
+---
+
+## Pages
+
+### בית
+https://example.com
+סוכנות נדלן מאור מתמחה בליווי רוכשי דירה ראשונה והשקעות נדלן חכמות. שירות אישי, ייעוץ מקצועי ומגוון נכסים איכוטיים. התחל את המסע שלך עכשיו!
+
+### נכסים
+https://example.com/properties
+עיין במגוון נכסים איכותיים למכירה והשקעה. דירות ראשונות, דירות להשקעה ונכסים ייחודיים. סינון חכם, תמונות מקצועיות וכל הפרטים שאתה צריך לקבלת החלטה נכונה.
+
+### שכונות
+https://example.com/neighborhoods
+מדריך מקיף לשכונות הטובות ביותר בישראל. מידע על תשתיות, חינוך, תחבורה ואיכות חיים. בחר את השכונה שמתאימה לסגנון החיים שלך ולתקציב שלך בקלות.
+
+### צור קשר
+https://example.com/contact
+צוות מאור נדלן כאן בשבילך! קבל ייעוץ מקצועי ללא התחייבות, שאל שאלות וגלה איך נוכל לעזור לך למצוא את הנכס המושלם. צור קשר עוד היום ונחזור אליך תוך 24 שעות.
+
+### Products
+https://example.com/products
+המוצרים שלנו - מאור נדלן
+
+### Product Detail
+https://example.com/product/:slug
+פרטי המוצר - מאור נדלן
+
+### Category
+https://example.com/category/:slug
+מוצרים - מאור נדלן
+
+## Legal & Policy
+
+### Privacy Policy
+https://example.com/privacy
+Information about how user data is collected, stored, and protected.
+
+### Terms & Conditions
+https://example.com/terms
+Legal terms describing service usage, rights, and policies.
+
+### Accessibility Statement
+https://example.com/accessibility
+Information about WCAG compliance and accessibility features.
+
+---
+
+# Business Context (for LLM understanding)
+
+## About Business
+---
+
+# Additional Resources
+
+- **Sitemap**: https://example.com/sitemap.xml
+- **Robots.txt**: https://example.com/robots.txt

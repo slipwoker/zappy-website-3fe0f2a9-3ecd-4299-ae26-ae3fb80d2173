@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <title>גלה את השכונה המתאימה לך ביותר — מאור נדלן</title>
+    <meta name="description" content="מדריך מקיף לשכונות הטובות ביותר בישראל. מידע על תשתיות, חינוך, תחבורה ואיכות חיים. בחר את השכונה שמתאימה לסגנון החיים שלך ולתקציב שלך בקלות.">
+    <meta name="keywords" content="שכונות בישראל, בחירת שכונה למגורים, איפה לקנות דירה, שכונות מומלצות, מדריך שכונות">
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon-48x48.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon-512x512.png">
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+    <!-- Zappy Analytics -->
+<script>
+(function() {
+  'use strict';
+  
+  // Configuration
+  var config = {
+    websiteId: '3fe0f2a9-3ecd-4299-ae26-ae3fb80d2173',
+    apiUrl: 'https://qaapi.zappy5.com/api/analytics/track',
+    sessionDuration: 30 * 60 * 1000, // 30 minutes
+    visitorDuration: 30 * 24 * 60 * 60 * 1000, // 30 days
+    trackPageViews: true,
+    trackClicks: true,
+    trackFormSubmissions: true
+  };
+  
+  // Generate or retrieve persistent visitor ID (30 days)
+  function getVisitorId() {
+    var visitorKey = 'zappy_visitor_' + config.websiteId;
+    var visitor = null;
+    
+    try {
+      visitor = localStorage.getItem(visitorKey);
+      if (visitor) {
+        var visitorData = JSON.parse(visitor);
+        var now = Date.now();
+        
+        // Check if visitor ID is still valid (30 days)
+        if (now - visitorData.created < config.visitorDuration) {
+          // Update last seen timestamp
+          visitorData.lastSeen = now;
+          localStorage.setItem(visitorKey, JSON.stringify(visitorData));
+          return visitorData.id;
+        }
+      }
+    } catch (e) {
+      console.warn('Zappy Analytics: LocalStorage not available');
+    }
+    
+    // Generate new visitor ID
+    var newVisitorId = 'zv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
+    try {
+      localStorage.setItem(visitorKey, JSON.stringify({
+        id: newVisitorId,
+        created: Date.now(),
+        lastSeen: Date.now()
+      }));
+    } catch (e) {
+      // Continue without local storage
+    }
+    
+    return newVisitorId;
+  }
+  
+  // Generate or retrieve session ID (30 minutes)
+  function getSessionId() {
+    var sessionKey = 'zappy_session_' + config.websiteId;
+    var session = null;
+    
+    try {
+      session = sessionStorage.getItem(sessionKey);
+      if (session) {
+        var sessionData = JSON.parse(session);
+        var now = Date.now();
+        
+        // Check if session is still valid
+        if (now - sessionData.timestamp < config.sessionDuration) {
+          // Update timestamp
+          sessionData.timestamp = now;
+          sessionStorage.setItem(sessionKey, JSON.stringify(sessionData));
+          return sessionData.id;
+        }
+      }
+    } catch (e) {
+      console.warn('Zappy Analytics: SessionStorage not available');
+    }
+    
+    // Generate new session ID
+    var newSessionId = 'zs_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
+    try {
+      sessionStorage.setItem(sessionKey, JSON.stringify({
+        id: newSessionId,
+        timestamp: Date.now()
+      }));
+    } catch (e) {
+      // Continue without session storage
+    }
+    
+    return newSessionId;
+  }
+  
+  var visitorId = getVisitorId();
+  var sessionId = getSessionId();
+  
+  // Track an event
+  function trackEvent(eventType, data) {
+    data = data || {};
+    
+    var eventData = {
+      website_id: config.websiteId,
+      event_type: eventType,
+      page_path: window.location.pathname,
+      referrer: document.referrer || 'direct',
+      visitor_id: visitorId,
+      session_id: sessionId,
+      metadata: data
+    };
+    
+    // Use sendBeacon if available (better for page unload events)
+    if (navigator.sendBeacon) {
+      var blob = new Blob([JSON.stringify(eventData)], { type: 'application/json' });
+      navigator.sendBeacon(config.apiUrl, blob);
+    } else {
+      // Fallback to fetch
+      fetch(config.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eventData),
+        keepalive: true
+      }).catch(function(error) {
+        console.warn('Zappy Analytics: Failed to track event', error);
+      });
+    }
+  }
+  
+  // Track page view
+  if (config.trackPageViews) {
+    trackEvent('pageview', {
+      title: document.title,
+      url: window.location.href
+    });
+  }
+  
+  // Track clicks on important elements
+  if (config.trackClicks) {
+    document.addEventListener('click', function(e) {
+      var target = e.target;
+      
+      // Track button clicks (counted as actions)
+      if (target.tagName === 'BUTTON' || target.closest('button')) {
+        var button = target.tagName === 'BUTTON' ? target : target.closest('button');
+        trackEvent('click', {
+          element: 'button',
+          text: button.textContent.trim().substring(0, 100),
+          id: button.id || null,
+          class: button.className || null
+        });
+      }
+      
+      // Track link clicks (navigation - not counted as actions)
+      else if (target.tagName === 'A' || target.closest('a')) {
+        var link = target.tagName === 'A' ? target : target.closest('a');
+        trackEvent('navigation', {
+          element: 'link',
+          text: link.textContent.trim().substring(0, 100),
+          href: link.href,
+          external: link.hostname !== window.location.hostname
+        });
+      }
+    }, true);
+  }
+  
+  // Track form submissions
+  if (config.trackFormSubmissions) {
+    document.addEventListener('submit', function(e) {
+      var form = e.target;
+      
+      trackEvent('form_submit', {
+        form_id: form.id || null,
+        form_name: form.name || null,
+        form_action: form.action || null,
+        form_method: form.method || 'GET'
+      });
+    }, true);
+  }
+  
+  // Track time on page (send on page unload)
+  var pageLoadTime = Date.now();
+  
+  window.addEventListener('beforeunload', function() {
+    var timeOnPage = Math.floor((Date.now() - pageLoadTime) / 1000); // in seconds
+    
+    trackEvent('page_unload', {
+      time_on_page: timeOnPage,
+      page_path: window.location.pathname
+    });
+  });
+  
+  // Expose tracking function globally for custom events
+  window.zappyAnalytics = {
+    track: trackEvent,
+    getVisitorId: function() { return visitorId; },
+    getSessionId: function() { return sessionId; }
+  };
+  
+})();
+</script>
+<!-- End Zappy Analytics -->
+    <meta property="og:title" content="גלה את השכונה המתאימה לך ביותר — מאור נדלן">
+  <meta property="og:description" content="מדריך מקיף לשכונות הטובות ביותר בישראל. מידע על תשתיות, חינוך, תחבורה ואיכות חיים. בחר את השכונה שמתאימה לסגנון החיים שלך ולתקציב שלך בקלות.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="he_IL">
+  
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="גלה את השכונה המתאימה לך ביותר — מאור נדלן">
+  <meta name="twitter:description" content="מדריך מקיף לשכונות הטובות ביותר בישראל. מידע על תשתיות, חינוך, תחבורה ואיכות חיים. בחר את השכונה שמתאימה לסגנון החיים שלך ולתקציב שלך בקלות.">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon-48x48.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon-512x512.png">
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+    <!-- Cookie Consent -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-cookieconsent@3/dist/cookieconsent.css">
+    <script src="https://cdn.jsdelivr.net/npm/vanilla-cookieconsent@3/dist/cookieconsent.umd.js"></script>
+    <!-- Mickidum Accessibility Toolbar -->
+    <script src="https://cdn.jsdelivr.net/gh/mickidum/acc_toolbar/acctoolbar/acctoolbar.min.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+
+    <style id="zappy-dropdown-submenu-styles">
+      /* ========== DESKTOP DROPDOWN SUBMENU STYLES ========== */
+      /* Base styles for dropdown submenus - parent must be positioned */
+      .nav-menu li:has(.sub-menu), nav li:has(.sub-menu), .navbar li:has(.sub-menu), #navMenu li:has(.sub-menu) { position: relative; }
+      /* Submenu base - hidden by default */
+      .nav-menu .sub-menu, nav .sub-menu, .navbar .sub-menu, #navMenu .sub-menu { display: block !important; position: absolute !important; top: 100%; left: 0; min-width: 220px; background: white; border-radius: 8px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); padding: 8px 0; opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.3s ease; z-index: 1000; list-style: none; pointer-events: none; }
+      /* CRITICAL: Desktop hover styles to show dropdown */
+      .nav-menu li:hover > .sub-menu, nav li:hover > .sub-menu, .navbar li:hover > .sub-menu, #navMenu li:hover > .sub-menu { opacity: 1 !important; visibility: visible !important; transform: translateY(0) !important; pointer-events: auto !important; }
+      /* Submenu item styling */
+      .sub-menu li { list-style: none; margin: 0; padding: 0; }
+      .sub-menu a { display: block !important; padding: 10px 16px !important; color: #333 !important; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background-color 0.2s; }
+      .sub-menu a:hover { background-color: #f5f5f5; }
+      /* RTL (Hebrew/Arabic) dropdown positioning */
+      [dir="rtl"] .nav-menu .sub-menu, [dir="rtl"] nav .sub-menu, [dir="rtl"] .navbar .sub-menu, html[lang="he"] .nav-menu .sub-menu, html[lang="he"] nav .sub-menu, html[lang="he"] .navbar .sub-menu, html[lang="ar"] .nav-menu .sub-menu, html[lang="ar"] nav .sub-menu, html[lang="ar"] .navbar .sub-menu { left: auto !important; right: 0 !important; }
+      /* Hide empty dropdown menus */
+      .sub-menu:empty, .sub-menu:not(:has(li:not(.zappy-hidden-menu-item))), .sub-menu:not(:has(li)) { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+      /* Desktop: show submenu on Menu Group hover */
+      li:has(.menu-group-title):hover > .sub-menu { opacity: 1 !important; visibility: visible !important; transform: translateY(0) !important; pointer-events: auto !important; }
+      /* Menu Group title styling */
+      .nav-menu > li > .menu-group-title, #navMenu > li > .menu-group-title { display: inline-block; padding: 0.5rem 1rem; cursor: default; user-select: none; }
+      
+      /* ========== MOBILE SUBMENU STYLES ========== */
+      @media (max-width: 768px) {
+        .nav-menu .sub-menu, nav .sub-menu, .navbar .sub-menu, #navMenu .sub-menu { position: static !important; transform: none !important; box-shadow: none !important; background: transparent !important; max-height: 0; overflow: hidden; opacity: 0; visibility: hidden; transition: max-height 0.3s ease, opacity 0.3s ease; padding: 0 !important; border-radius: 0 !important; }
+        .sub-menu.mobile-expanded { max-height: 500px !important; opacity: 1 !important; visibility: visible !important; padding: 8px 0 8px 16px !important; }
+        [dir="rtl"] .sub-menu.mobile-expanded, html[lang="he"] .sub-menu.mobile-expanded { padding: 8px 16px 8px 0 !important; }
+        /* Disable hover behavior on mobile */
+        .nav-menu li:hover > .sub-menu, nav li:hover > .sub-menu, .navbar li:hover > .sub-menu, #navMenu li:hover > .sub-menu { opacity: 0; visibility: hidden; pointer-events: none; }
+        .nav-menu li > .sub-menu.mobile-expanded, nav li > .sub-menu.mobile-expanded, .navbar li > .sub-menu.mobile-expanded, #navMenu li > .sub-menu.mobile-expanded { opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; }
+        .nav-menu li:has(.sub-menu), nav li:has(.sub-menu), .navbar li:has(.sub-menu), #navMenu li:has(.sub-menu) { display: flex !important; flex-wrap: wrap !important; align-items: center !important; position: relative !important; min-height: 44px !important; }
+        .nav-menu li:has(.sub-menu) > a, nav li:has(.sub-menu) > a, .navbar li:has(.sub-menu) > a, #navMenu li:has(.sub-menu) > a { flex: 1 !important; min-width: 0 !important; }
+        .nav-menu li:has(.sub-menu) > .menu-group-title, nav li:has(.sub-menu) > .menu-group-title, .navbar li:has(.sub-menu) > .menu-group-title, #navMenu li:has(.sub-menu) > .menu-group-title { flex: 1 !important; min-width: 0 !important; padding: 0 !important; line-height: inherit !important; }
+        .nav-menu li:has(.sub-menu) > .sub-menu, nav li:has(.sub-menu) > .sub-menu, .navbar li:has(.sub-menu) > .sub-menu, #navMenu li:has(.sub-menu) > .sub-menu { flex-basis: 100% !important; width: 100% !important; }
+        .nav-menu li:has(.sub-menu) > a [class*="chevron"], .nav-menu li:has(.sub-menu) > a [class*="arrow"], .nav-menu li:has(.sub-menu) > a .fa-chevron-down, .nav-menu li:has(.sub-menu) > a .fa-angle-down, nav li:has(.sub-menu) > a [class*="chevron"], nav li:has(.sub-menu) > a [class*="arrow"], #navMenu li:has(.sub-menu) > a [class*="chevron"], #navMenu li:has(.sub-menu) > a [class*="arrow"] { display: none !important; visibility: hidden !important; }
+        .mobile-submenu-toggle { display: flex !important; align-items: center !important; justify-content: center !important; width: 44px !important; height: auto !important; background: transparent !important; border: none !important; cursor: pointer !important; color: var(--text-light) !important; position: static !important; flex-shrink: 0 !important; align-self: stretch !important; z-index: 2 !important; padding: 0 !important; margin: 0 !important; }
+        .mobile-submenu-toggle::after { content: '' !important; width: 0 !important; height: 0 !important; border-left: 6px solid transparent !important; border-right: 6px solid transparent !important; border-top: 7px solid currentColor !important; transition: transform 0.3s ease !important; }
+        .mobile-submenu-toggle.expanded::after { transform: rotate(180deg) !important; }
+        .sub-menu a { padding: 10px 0 !important; display: block !important; color: var(--text-light) !important; }
+        .navbar .sub-menu li a, nav.navbar .sub-menu li a, .zappy-products-dropdown .sub-menu a { color: var(--text-light) !important; }
+      }
+      @media (min-width: 769px) { .mobile-submenu-toggle { display: none !important; } }
+    </style>
+
+    <style id="zappy-widget-visibility">
+      #mic-access-tool-general-button, .mic-access-tool-general-button,
+      #mic-init-access-tool .mic-access-tool-general-button, #mic-init-access-tool #mic-access-tool-general-button,
+      ._access-icon, #mic-access-tool-box, .mic-access-tool-box,
+      #mic-init-access-tool #mic-access-tool-box, div[id*="mic-access-tool-box"], ._access-menu {
+        display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important;
+      }
+    </style>
+</head>
+<body>
+
+
+    <div class="mobile-search-panel" id="mobile-search-panel">
+      <div class="search-wrapper">
+        <input type="text" id="mobile-search-input" placeholder="חיפוש מוצרים..." autocomplete="off">
+        <button class="search-submit" id="mobile-search-submit" title="חיפוש">
+          <svg width="20" height="20" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+        </button>
+        <button class="close-search" id="close-mobile-search">
+          <svg width="20" height="20" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="search-results" id="mobile-search-results"></div>
+    </div>
+  
+<script>window.ZAPPY_WEBSITE_ID = "3fe0f2a9-3ecd-4299-ae26-ae3fb80d2173";window.ZAPPY_API_BASE = (window.location.pathname.includes('/preview') ? "http://localhost:5001" : "https://qaapi.zappy5.com");</script>
+  <nav class="navbar" dir="rtl">
+  <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
+    <svg class="hamburger-icon" width="24" height="24" viewbox="0 0 24 24" fill="none">
+      <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+    </svg>
+    <svg class="close-icon" width="24" height="24" viewbox="0 0 24 24" fill="none" style="display:none;">
+      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+    </svg>
+  </button>
+  
+  <button class="phone-header-btn" aria-label="Call">
+    <svg width="20" height="20" viewbox="0 0 24 24" fill="currentColor">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+    </svg>
+  </button>
+  
+  <div class="nav-container">
+    <div class="nav-brand">
+      <a href="/" class="logo-link">
+        <img src="/assets/business-logo.webp" alt="מאור נדלן" class="logo">
+      </a>
+    </div>
+    
+    <ul class="nav-menu" id="navMenu">
+
+    <li class="menu-item-has-children zappy-products-dropdown">
+      <a href="/products">
+        מוצרים
+        <svg class="dropdown-arrow" width="12" height="12" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 9l6 6 6-6"></path>
+        </svg>
+      </a>
+      <ul class="sub-menu" id="zappy-nav-category-links">
+        <li><a href="/products">כל המוצרים</a></li>
+        <!-- Categories will be loaded dynamically -->
+      </ul>
+    </li>
+  <li><a href="/properties">נכסים</a></li><li><a href="/neighborhoods">שכונות</a></li><li><a href="/contact">צור קשר</a></li></ul><div class="nav-ecommerce-icons nav-icons-left"><div class="nav-search-box">
+    <input type="text" class="nav-search-input" id="nav-search-input" placeholder="חיפוש מוצרים..." autocomplete="off">
+    <button class="nav-search-btn" id="nav-search-btn" title="חיפוש">
+      <svg class="search-icon" width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+    </button>
+    <div class="nav-search-results" id="nav-search-results"></div>
+  </div></div><div class="nav-ecommerce-icons nav-icons-right"><button class="nav-search-toggle" id="mobile-search-toggle" title="חיפוש"><svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg></button></div>
+    
+    
+  </div>
+</nav>
+
+    <nav class="zappy-catalog-menu rtl" id="zappy-catalog-menu" dir="rtl">
+      <div class="catalog-menu-container">
+        <a href="/products" class="catalog-menu-item catalog-menu-all">כל המוצרים</a>
+        <div class="catalog-menu-categories" id="zappy-category-links">
+          <!-- Categories will be loaded dynamically -->
+        </div>
+      </div>
+    </nav>
+  
+  
+  <main>
+    <section class="neighborhoods-hero-section" data-layout-spec="שכונות-hero" data-hero-type="fullscreen-scrim">
+  <div class="neighborhoods-hero-bg-wrapper">
+    <img data-hero-bg="true" data-placeholder="neighborhoods-hero-bg" data-context="Wide cinematic urban neighborhood street scene at golden hour for Israeli real estate agency. Modern Tel Aviv or Jerusalem residential street with beautiful architecture, trees lining the sidewalk, warm evening light casting long shadows. Premium magazine-quality photography with depth and atmosphere. Shot from street level showing building facades, balconies, and urban lifestyle details. Natural color grading with rich warm tones." width="1920" height="1080" src="/assets/site-neighborhoods-hero-bg.webp" alt="רחוב שכונתי עירוני בשעת הזהב" class="neighborhoods-hero-bg">
+  </div>
+  <div class="neighborhoods-hero-scrim" aria-hidden="true"></div>
+  <div class="neighborhoods-hero-content-wrapper">
+    <div class="neighborhoods-hero-content">
+      <h1 class="neighborhoods-hero-title">סיפורי שכונות<br>והקשר המקומי</h1>
+      <h3 class="neighborhoods-hero-subtitle">תובנות קוראטדות על אווירה, ארכיטקטורה<br>ואורח חיים בכל שכונה</h3>
+      <div class="neighborhoods-hero-cta-group">
+        <a href="/contact" class="neighborhoods-hero-cta btn-primary">שאלו על אזור מסוים</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="neighborhoods-editorial-stories-section" data-layout-spec="שכונות-editorial-stories">
+  <div class="neighborhoods-editorial-stories-container">
+    <div class="neighborhoods-editorial-stories-header">
+      <h2>חיי העיר, לפי אזור</h2>
+      <p class="neighborhoods-editorial-stories-intro">מתאימים אנשים למקומות – כי כל שכונה מספרת סיפור אחר</p>
+    </div>
+    
+    <div class="neighborhoods-editorial-stories-grid">
+      <!-- Story 1 (Smaller) -->
+      <article class="neighborhoods-editorial-stories-card neighborhoods-editorial-stories-card-small">
+        <div class="neighborhoods-editorial-stories-image-wrapper">
+          <img data-placeholder="neighborhoods-editorial-stories-image-1" data-context="תמונה אנכית של שכונה עירונית תוססת בישראל עם בניינים מודרניים, רחובות מרוצפים, בתי קפה ברחוב, אווירה של חיי לילה ותרבות, סגנון פוטוגרפיה עיתונאית מקצועית" width="600" height="900" src="/assets/site-neighborhoods-editorial-stories-image-1.webp" alt="שכונה עירונית תוססת">
+        </div>
+        <div class="neighborhoods-editorial-stories-content">
+          <h3>פלורנטין</h3>
+          <p>לב פועם של תרבות אורבנית. רחובות צרים מלאים באמנות רחוב, בתי קפה בוהמיינים וחיי לילה תוססים. מושלם לצעירים שמחפשים אנרגיה עירונית אותנטית ללא פשרות.</p>
+        </div>
+      </article>
+
+      <!-- Story 2 (Larger - Center) -->
+      <article class="neighborhoods-editorial-stories-card neighborhoods-editorial-stories-card-large">
+        <div class="neighborhoods-editorial-stories-image-wrapper">
+          <img data-placeholder="neighborhoods-editorial-stories-image-2" data-context="תמונה אנכית של שכונת מגורים מעורבת בישראל עם שילוב של בניינים ישנים משופצים וחדשים, עצים בשדרות, משפחות הולכות ברחוב, אווירה קהילתית חמה, סגנון פוטוגרפיה עיתונאית מקצועית" width="800" height="1200" src="/assets/site-neighborhoods-editorial-stories-image-2.webp" alt="שכונת מגורים מעורבת">
+        </div>
+        <div class="neighborhoods-editorial-stories-content">
+          <h3>נווה צדק</h3>
+          <p>אלגנטיות היסטורית פוגשת עיצוב עכשווי. סמטאות מרוצפות, גלריות אמנות ומסעדות שף יוצרות אווירה רומנטית ומתוחכמת. השכונה מושכת משפחות צעירות ואנשי מקצוע שמעריכים אסתטיקה ושקט יחסי במרכז העיר. הארכיטקטורה המשמרת את הקסם הישן לצד שיפוצים יוקרתיים הופכת כל פינה לחוויה ויזואלית.</p>
+        </div>
+      </article>
+
+      <!-- Story 3 (Smaller) -->
+      <article class="neighborhoods-editorial-stories-card neighborhoods-editorial-stories-card-small">
+        <div class="neighborhoods-editorial-stories-image-wrapper">
+          <img data-placeholder="neighborhoods-editorial-stories-image-3" data-context="תמומה אנכית של שכונת מגורים ירוקה ושקטה בישראל עם בניינים נמוכים, פארקים, שבילי הליכה, משפחות עם ילדים, אווירה שלווה ופרברית, סגנון פוטוגרפיה עיתונאית מקצועית" width="600" height="900" src="/assets/site-neighborhoods-editorial-stories-image-3.webp" alt="שכונת מגורים ירוקה">
+        </div>
+        <div class="neighborhoods-editorial-stories-content">
+          <h3>רמת אביב</h3>
+          <p>שקט פרברי עם נגישות עירונית. שדרות רחבות, פארקים מטופחים ובניינים נמוכים יוצרים תחושת מרווח ואיכות חיים. אידיאלי למשפחות שמחפשות סביבה ירוקה ובטוחה עם קהילה חזקה.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+  
+  <!-- Bottom Divider: Angled slice revealing indigo gradient -->
+  <div class="neighborhoods-editorial-stories-divider-wrapper">
+    <svg data-no-icon-edit="true" aria-hidden="true" viewbox="0 0 1200 60" preserveaspectratio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="neighborhoods-editorial-stories-divider-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#1C2E78;stop-opacity:1"></stop>
+          <stop offset="50%" style="stop-color:#2B4A9C;stop-opacity:1"></stop>
+          <stop offset="100%" style="stop-color:#0B1A4A;stop-opacity:1"></stop>
+        </linearGradient>
+      </defs>
+      <path d="M0,60 L0,20 L1200,40 L1200,60 Z" fill="var(--bg-light)"></path>
+    </svg>
+  </div>
+</section>
+
+<section class="neighborhoods-infographic-section" data-layout-spec="שכונות-infographic">
+  <div class="neighborhoods-infographic-section__container">
+    <div class="neighborhoods-infographic-section__intro-grid">
+      <div class="neighborhoods-infographic-section__intro-content">
+        <h2 class="neighborhoods-infographic-section__title">אותות מקומיים שחשובים</h2>
+        <p class="neighborhoods-infographic-section__intro-text">אלו הם רמזים איכותיים שאנחנו משתמשים בהם כדי לייעץ ללקוחות. מעבר למספרים ולסטטיסטיקות, האותות האלה מספרים את הסיפור האמיתי של השכונה – האופי שלה, הקצב, והאווירה שתחיו בה כל יום.</p>
+      </div>
+      <div class="neighborhoods-infographic-section__diagram-panel">
+        <svg data-no-icon-edit="true" aria-hidden="true" class="neighborhoods-infographic-section__diagram-svg" viewbox="0 0 300 280" xmlns="http://www.w3.org/2000/svg">
+          <!-- Central block -->
+          <rect x="110" y="100" width="80" height="80" fill="var(--bg-dark)" stroke="var(--border-light)" stroke-width="1.5"></rect>
+          <text x="150" y="145" text-anchor="middle" fill="var(--text-light)" font-size="11" font-weight="600">מרכז<tspan x="150" dy="14">השכונה</tspan></text>
+          
+          <!-- Top block -->
+          <rect x="110" y="20" width="80" height="60" fill="none" stroke="var(--border-light)" stroke-width="1.5"></rect>
+          <text x="150" y="48" text-anchor="middle" fill="var(--text-dark)" font-size="10">תחבורה</text>
+          <line x1="150" y1="80" x2="150" y2="100" stroke="var(--border-light)" stroke-width="1.5"></line>
+          
+          <!-- Right block -->
+          <rect x="210" y="100" width="70" height="80" fill="none" stroke="var(--border-light)" stroke-width="1.5"></rect>
+          <text x="245" y="145" text-anchor="middle" fill="var(--text-dark)" font-size="10">אופי<tspan x="245" dy="14">רחוב</tspan></text>
+          <line x1="190" y1="140" x2="210" y2="140" stroke="var(--border-light)" stroke-width="1.5"></line>
+          
+          <!-- Left block -->
+          <rect x="20" y="100" width="70" height="80" fill="none" stroke="var(--border-light)" stroke-width="1.5"></rect>
+          <text x="55" y="145" text-anchor="middle" fill="var(--text-dark)" font-size="10">אור<tspan x="55" dy="14">וכיוון</tspan></text>
+          <line x1="90" y1="140" x2="110" y2="140" stroke="var(--border-light)" stroke-width="1.5"></line>
+          
+          <!-- Bottom block -->
+          <rect x="110" y="200" width="80" height="60" fill="none" stroke="var(--border-light)" stroke-width="1.5"></rect>
+          <text x="150" y="235" text-anchor="middle" fill="var(--text-dark)" font-size="10">אנרגיה</text>
+          <line x1="150" y1="180" x2="150" y2="200" stroke="var(--border-light)" stroke-width="1.5"></line>
+          
+          <!-- Decorative corner dots -->
+          <circle cx="110" cy="100" r="3" fill="var(--accent)"></circle>
+          <circle cx="190" cy="100" r="3" fill="var(--accent)"></circle>
+          <circle cx="110" cy="180" r="3" fill="var(--accent)"></circle>
+          <circle cx="190" cy="180" r="3" fill="var(--accent)"></circle>
+        </svg>
+      </div>
+    </div>
+
+    <div class="neighborhoods-infographic-section__signals-grid">
+      <div class="neighborhoods-infographic-section__signal-card">
+        <svg data-element-type="icon" data-icon-type="svg" class="neighborhoods-infographic-section__signal-icon" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 38 L24 10 L40 38" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M14 38 L24 20 L34 38" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+          <line x1="8" y1="38" x2="40" y2="38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></line>
+        </svg>
+        <h3 class="neighborhoods-infographic-section__signal-title">אופי הרחוב</h3>
+        <p class="neighborhoods-infographic-section__signal-text">האם הרחובות רחבים ושקטים או צרים ותוססים? האם יש עצים מבוגרים? האופי הפיזי של הרחוב משפיע על תחושת המרחב והביטחון.</p>
+      </div>
+
+      <div class="neighborhoods-infographic-section__signal-card">
+        <svg data-element-type="icon" data-icon-type="svg" class="neighborhoods-infographic-section__signal-icon" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="14" r="6" stroke="currentColor" stroke-width="2" fill="none"></circle>
+          <path d="M12 28 Q18 22 24 22 Q30 22 36 28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"></path>
+          <path d="M8 36 Q14 30 24 30 Q34 30 40 36" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"></path>
+        </svg>
+        <h3 class="neighborhoods-infographic-section__signal-title">קצב התחבורה</h3>
+        <p class="neighborhoods-infographic-section__signal-text">מה המרחק למרכזי תחבורה ציבורית? כמה קלה הנגישות? הקצב הזה קובע את רמת הנוחות והגמישות בחיי היומיום.</p>
+      </div>
+
+      <div class="neighborhoods-infographic-section__signal-card">
+        <svg data-element-type="icon" data-icon-type="svg" class="neighborhoods-infographic-section__signal-icon" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="18" r="8" stroke="currentColor" stroke-width="2" fill="none"></circle>
+          <line x1="24" y1="10" x2="24" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+          <line x1="24" y1="26" x2="24" y2="32" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+          <line x1="32" y1="18" x2="38" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+          <line x1="16" y1="18" x2="10" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+          <path d="M8 38 L40 38 Q42 38 42 40 Q42 42 40 42 L8 42 Q6 42 6 40 Q6 38 8 38" stroke="currentColor" stroke-width="2" fill="none"></path>
+        </svg>
+        <h3 class="neighborhoods-infographic-section__signal-title">אור וכיוון</h3>
+        <p class="neighborhoods-infographic-section__signal-text">לאיזה כיוון פונות הדירות? כמה שעות אור טבעי מקבלים? הכיוון משפיע על איכות החיים, צריכת האנרגיה, והתחושה הכללית בבית.</p>
+      </div>
+
+      <div class="neighborhoods-infographic-section__signal-card">
+        <svg data-element-type="icon" data-icon-type="svg" class="neighborhoods-infographic-section__signal-icon" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="18" width="14" height="24" stroke="currentColor" stroke-width="2" fill="none"></rect>
+          <rect x="26" y="12" width="14" height="30" stroke="currentColor" stroke-width="2" fill="none"></rect>
+          <line x1="10" y1="24" x2="20" y2="24" stroke="currentColor" stroke-width="1.5"></line>
+          <line x1="10" y1="30" x2="20" y2="30" stroke="currentColor" stroke-width="1.5"></line>
+          <line x1="10" y1="36" x2="20" y2="36" stroke="currentColor" stroke-width="1.5"></line>
+          <line x1="28" y1="18" x2="38" y2="18" stroke="currentColor" stroke-width="1.5"></line>
+          <line x1="28" y1="24" x2="38" y2="24" stroke="currentColor" stroke-width="1.5"></line>
+          <line x1="28" y1="30" x2="38" y2="30" stroke="currentColor" stroke-width="1.5"></line>
+          <line x1="28" y1="36" x2="38" y2="36" stroke="currentColor" stroke-width="1.5"></line>
+        </svg>
+        <h3 class="neighborhoods-infographic-section__signal-title">טיפולוגיות בניינים</h3>
+        <p class="neighborhoods-infographic-section__signal-text">האם מדובר בבניינים ישנים עם אופי או חדשים ומודרניים? האם יש מגוון או אחידות? הארכיטקטורה מעידה על אופי התושבים והפוטנציאל העתידי.</p>
+      </div>
+
+      <div class="neighborhoods-infographic-section__signal-card">
+        <svg data-element-type="icon" data-icon-type="svg" class="neighborhoods-infographic-section__signal-icon" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 32 Q12 28 16 28 Q20 28 24 32 Q28 36 32 36 Q36 36 40 32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"></path>
+          <circle cx="16" cy="18" r="3" stroke="currentColor" stroke-width="2" fill="none"></circle>
+          <circle cx="32" cy="14" r="3" stroke="currentColor" stroke-width="2" fill="none"></circle>
+          <path d="M12 22 L14 26 L18 24" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M28 18 L30 22 L34 20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <h3 class="neighborhoods-infographic-section__signal-title">אנרגיה בסופי שבוע</h3>
+        <p class="neighborhoods-infographic-section__signal-text">איך השכונה מרגישה בשבת או בערבים? האם יש חיי קהילה פעילים או שקט מוחלט? האנרגיה הזו חשובה להתאמה לסגנון החיים שלכם.</p>
+      </div>
+
+      <div class="neighborhoods-infographic-section__signal-card">
+        <svg data-element-type="icon" data-icon-type="svg" class="neighborhoods-infographic-section__signal-icon" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 24 Q12 20 18 20 L30 20 Q36 20 40 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"></path>
+          <circle cx="14" cy="28" r="2" fill="currentColor"></circle>
+          <circle cx="24" cy="30" r="2" fill="currentColor"></circle>
+          <circle cx="34" cy="28" r="2" fill="currentColor"></circle>
+          <path d="M6 36 L42 36" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+          <path d="M10 14 Q12 10 16 10 Q20 10 22 14" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"></path>
+          <path d="M26 14 Q28 10 32 10 Q36 10 38 14" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"></path>
+        </svg>
+        <h3 class="neighborhoods-infographic-section__signal-title">כיסים שקטים</h3>
+        <p class="neighborhoods-infographic-section__signal-text">האם יש רחובות צדדיים שקטים או פינות מוסתרות? לפעמים הכיס השקט ממש ליד הרחוב הראשי הוא המפתח לאיזון מושלם בין נוחות לשלווה.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="neighborhoods-infographic-section__divider-wrapper">
+    <svg data-no-icon-edit="true" aria-hidden="true" viewbox="0 0 1200 60" preserveaspectratio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,60 L0,30 Q100,25 200,30 T400,28 Q500,32 600,27 T800,30 Q900,26 1000,30 T1200,28 L1200,60 Z" fill="#0B1220"></path>
+    </svg>
+  </div>
+</section>
+
+<section class="neighborhoods-gallery-section" data-layout-spec="שכונות-gallery">
+  <div class="neighborhoods-gallery-container">
+    <h2 class="neighborhoods-gallery-title">אדריכלות ואווירה.</h2>
+    
+    <div class="neighborhoods-gallery-grid">
+      <div class="neighborhoods-gallery-main-image">
+        <img data-placeholder="neighborhoods-gallery-image-1" data-context="Wide cinematic urban architecture photo of a prestigious Israeli neighborhood street with modern buildings, tree-lined boulevards, and golden hour lighting. High-contrast photography showing architectural details, textures, and urban planning. Professional real estate photography style for luxury property marketing." width="1200" height="675" src="/assets/site-neighborhoods-gallery-image-1.webp" alt="רחוב שכונתי יוקרתי עם אדריכלות מודרנית">
+      </div>
+      
+      <div class="neighborhoods-gallery-side-images">
+        <div class="neighborhoods-gallery-portrait-image">
+          <img data-placeholder="neighborhoods-gallery-image-2" data-context="Portrait-oriented photo of a modern residential building facade in Israel with geometric balconies, clean lines, and contemporary design. High-contrast urban photography showing architectural details and textures. Evening lighting with warm ambient glow." width="600" height="900" src="/assets/site-neighborhoods-gallery-image-2.webp" alt="חזית בניין מגורים מודרני">
+        </div>
+        
+        <div class="neighborhoods-gallery-portrait-image">
+          <img data-placeholder="neighborhoods-gallery-image-3" data-context="Portrait-oriented photo of a vibrant Israeli neighborhood street corner with cafes, pedestrians, and urban life. High-contrast photography showing community atmosphere, street textures, and architectural character. Natural daylight with dynamic shadows." width="600" height="900" src="/assets/site-neighborhoods-gallery-image-3.webp" alt="פינת רחוב תוססת בשכונה">
+        </div>
+      </div>
+    </div>
+    
+    <div class="neighborhoods-gallery-content">
+      <p class="neighborhoods-gallery-description">אנחנו רואים מעבר לרשימות נכסים – אנחנו מבינים את הסיפור של כל שכונה.</p>
+      <a href="/contact" class="neighborhoods-gallery-cta">שוחח על שכונות</a>
+    </div>
+  </div>
+  
+  <div class="neighborhoods-gallery-divider-wrapper">
+    <svg data-no-icon-edit="true" aria-hidden="true" viewbox="0 0 1200 80" preserveaspectratio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,80 L0,45 Q30,38 60,45 T120,40 Q150,45 180,38 T240,42 Q270,38 300,45 T360,40 Q390,45 420,38 T480,45 Q510,40 540,45 T600,38 Q630,45 660,40 T720,45 Q750,38 780,45 T840,40 Q870,45 900,38 T960,45 Q990,40 1020,45 T1080,38 Q1110,45 1140,40 T1200,45 L1200,80 Z" fill="#FFFFFF"></path>
+    </svg>
+  </div>
+</section>
+
+<section class="neighborhoods-cta-section" data-layout-spec="שכונות-cta">
+  <div class="neighborhoods-cta-container">
+    <div class="neighborhoods-cta-content">
+      <h2>בחרו שכונה בביטחון מלא</h2>
+      <p>נשמח לשיחה קצרה כדי להתאים את העדיפות שלכם לאזורים המתאימים ביותר. הצוות שלנו מכיר לעומק את כל השכונות ויעזור לכם למצוא את הבית המושלם.</p>
+      <div class="neighborhoods-cta-buttons">
+        <a href="/contact" class="btn-primary">צרו קשר</a>
+        <a href="/properties" class="btn-secondary">צפו בנכסים</a>
+      </div>
+    </div>
+  </div>
+  <div class="neighborhoods-cta-gradient-rule"></div>
+</section>
+  </main>
+  
+  <footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-top">
+      <div class="footer-column footer-about">
+        <img src="/assets/business-logo.webp" alt="מאור נדלן" class="logo">
+        <p class="footer-description">מאור נדלן - המומחים שלך למציאת הבית המושלם. שירות מקצועי ואמין בכל שלב.</p>
+      </div>
+      
+      <div class="footer-column footer-links">
+        <h3 class="footer-heading">קישורים מהירים</h3>
+        <ul class="footer-menu">
+          <li><a href="/properties">נכסים</a></li>
+          <li><a href="/neighborhoods">שכונות</a></li>
+          <li><a href="/contact">צור קשר</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-column footer-contact">
+        <h3 class="footer-heading">יצירת קשר</h3>
+        <ul class="contact-list">
+          <li>
+            <i class="fas fa-envelope"></i>
+            <a href="mailto:[business_email]">[business_email]</a>
+          </li>
+          <li>
+            <i class="fas fa-phone"></i>
+            <a href="tel:[business_phone]">[business_phone]</a>
+          </li>
+          <li><a href="/"><i class="fas fa-map-marker-alt"></i>
+            <span>[business_address]</span></a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-column footer-social">
+        <h3 class="footer-heading">עקבו אחרינו</h3>
+        <div class="social-links">
+          <a href="[facebook_handle]" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="[instagram_handle]" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="[whatsapp_handle]" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <div class="footer-bottom-content">
+        <div class="copyright">
+          <p>© 2026 מאור נדלן. All rights reserved.</p>
+        </div>
+        <div class="footer-legal">
+          <a href="/privacy">Privacy Policy</a>
+          <span class="separator">|</span>
+          <a href="/terms">Terms &amp; Conditions</a><span class="separator">|</span>
+            <a href="/return-policy" aria-label="מדיניות החזרות">
+              מדיניות החזרות
+            </a>
+          <span class="separator">|</span>
+          <a href="/accessibility">Accessibility</a>
+          <span class="separator">|</span>
+          <a href="https://zappy5.com" target="_blank" class="zappy-attribution">Generated by Zappy</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+  
+  <a href="https://wa.me/[whatsapp_handle]" class="whatsapp-float" aria-label="WhatsApp">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+  
+  <div data-integration="accessibility:toolbar"></div>
+
+    <script src="/script.js"></script>
+
+    <script id="zappy-mobile-submenu-script">
+    (function() {
+      function initMobileSubmenuToggles() {
+        if (window.innerWidth > 768) {
+          document.querySelectorAll('.mobile-submenu-toggle').forEach(function(btn) { btn.remove(); });
+          document.querySelectorAll('.sub-menu.mobile-expanded').forEach(function(menu) { menu.classList.remove('mobile-expanded'); });
+          return;
+        }
+        var items = document.querySelectorAll('.nav-menu li:has(.sub-menu), nav li:has(.sub-menu), .navbar li:has(.sub-menu), #navMenu li:has(.sub-menu)');
+        items.forEach(function(li) {
+          if (li.querySelector('.mobile-submenu-toggle')) return;
+          var submenu = li.querySelector('.sub-menu');
+          var parentLink = li.querySelector(':scope > a');
+          if (!submenu || !parentLink) return;
+          var toggleBtn = document.createElement('button');
+          toggleBtn.className = 'mobile-submenu-toggle';
+          toggleBtn.setAttribute('aria-label', 'Toggle submenu');
+          toggleBtn.setAttribute('type', 'button');
+          parentLink.insertAdjacentElement('afterend', toggleBtn);
+          toggleBtn.addEventListener('click', function(e) {
+            e.preventDefault(); e.stopPropagation();
+            document.querySelectorAll('.sub-menu.mobile-expanded').forEach(function(menu) {
+              if (menu !== submenu) { menu.classList.remove('mobile-expanded'); var t = menu.parentElement.querySelector('.mobile-submenu-toggle'); if(t) t.classList.remove('expanded'); }
+            });
+            submenu.classList.toggle('mobile-expanded');
+            toggleBtn.classList.toggle('expanded');
+          });
+        });
+      }
+      if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initMobileSubmenuToggles); }
+      else { initMobileSubmenuToggles(); }
+      var resizeTimer; window.addEventListener('resize', function() { clearTimeout(resizeTimer); resizeTimer = setTimeout(initMobileSubmenuToggles, 250); });
+      // Re-initialize when mobile menu becomes visible (MutationObserver)
+      var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.type === 'attributes') {
+            var target = mutation.target;
+            if (target.classList && (target.classList.contains('active') || target.classList.contains('open'))) {
+              setTimeout(initMobileSubmenuToggles, 100);
+            }
+          }
+        });
+      });
+      setTimeout(function() {
+        document.querySelectorAll('.mobile-menu, .nav-menu, #navMenu, nav').forEach(function(menu) {
+          observer.observe(menu, { attributes: true, attributeFilter: ['class', 'style'] });
+        });
+      }, 500);
+    })();
+    </script>
+
+    <script id="zappy-navbar-scroll-effect">
+    (function(){var nb=document.querySelector('nav.navbar,.navbar:not(.zappy-catalog-menu)');var cm=document.querySelector('.zappy-catalog-menu');if(!nb)return;var fb='rgba(11,18,32,0.85)';var th=60;nb.style.transition='background 0.3s ease,backdrop-filter 0.3s ease,-webkit-backdrop-filter 0.3s ease,box-shadow 0.3s ease';if(cm)cm.style.transition='background 0.3s ease,backdrop-filter 0.3s ease,-webkit-backdrop-filter 0.3s ease';function onS(){var y=window.scrollY||window.pageYOffset;if(y>th){nb.style.background=fb;nb.style.backdropFilter='blur(12px)';nb.style.webkitBackdropFilter='blur(12px)';nb.style.boxShadow='0 2px 16px rgba(0,0,0,0.12)';if(cm){cm.style.background=fb;cm.style.backdropFilter='blur(12px)';cm.style.webkitBackdropFilter='blur(12px)';}}else{nb.style.background='transparent';nb.style.backdropFilter='none';nb.style.webkitBackdropFilter='none';nb.style.boxShadow='none';if(cm){cm.style.background='transparent';cm.style.backdropFilter='none';cm.style.webkitBackdropFilter='none';}}}window.addEventListener('scroll',onS,{passive:true});onS();})();
+    </script>
+</body>
+</html>
