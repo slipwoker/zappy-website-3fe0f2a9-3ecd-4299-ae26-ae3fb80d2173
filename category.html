@@ -419,7 +419,15 @@
         </section>
       
   </main>
-  <footer class="site-footer">
+  <!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מאור נדלן</title>
+</head>
+<body>
+<footer class="site-footer">
   <div class="footer-container">
     <div class="footer-top">
       <div class="footer-column footer-about">
@@ -458,6 +466,7 @@
           <a href="[facebook_handle]" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
           <a href="[instagram_handle]" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
           <a href="[whatsapp_handle]" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+          <a href="https://www.linkedin.com/company/109977265/admin/dashboard/" aria-label="LinkedIn" data-element-id="element-ai-1772473352603-k9m2x7" data-element-type="social-link"><i class="fab fa-linkedin"></i></a>
         </div>
       </div>
     </div>
@@ -483,6 +492,63 @@
     </div>
   </div>
 </footer>
+
+    <script id="zappy-mobile-submenu-script">
+    (function() {
+      function initMobileSubmenuToggles() {
+        if (window.innerWidth > 768) {
+          document.querySelectorAll('.mobile-submenu-toggle').forEach(function(btn) { btn.remove(); });
+          document.querySelectorAll('.sub-menu.mobile-expanded').forEach(function(menu) { menu.classList.remove('mobile-expanded'); });
+          return;
+        }
+        var items = document.querySelectorAll('.nav-menu li:has(.sub-menu), nav li:has(.sub-menu), .navbar li:has(.sub-menu), #navMenu li:has(.sub-menu)');
+        items.forEach(function(li) {
+          if (li.querySelector('.mobile-submenu-toggle')) return;
+          var submenu = li.querySelector('.sub-menu');
+          var parentLink = li.querySelector(':scope > a');
+          if (!submenu || !parentLink) return;
+          var toggleBtn = document.createElement('button');
+          toggleBtn.className = 'mobile-submenu-toggle';
+          toggleBtn.setAttribute('aria-label', 'Toggle submenu');
+          toggleBtn.setAttribute('type', 'button');
+          parentLink.insertAdjacentElement('afterend', toggleBtn);
+          toggleBtn.addEventListener('click', function(e) {
+            e.preventDefault(); e.stopPropagation();
+            document.querySelectorAll('.sub-menu.mobile-expanded').forEach(function(menu) {
+              if (menu !== submenu) { menu.classList.remove('mobile-expanded'); var t = menu.parentElement.querySelector('.mobile-submenu-toggle'); if(t) t.classList.remove('expanded'); }
+            });
+            submenu.classList.toggle('mobile-expanded');
+            toggleBtn.classList.toggle('expanded');
+          });
+        });
+      }
+      if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initMobileSubmenuToggles); }
+      else { initMobileSubmenuToggles(); }
+      var resizeTimer; window.addEventListener('resize', function() { clearTimeout(resizeTimer); resizeTimer = setTimeout(initMobileSubmenuToggles, 250); });
+      // Re-initialize when mobile menu becomes visible (MutationObserver)
+      var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.type === 'attributes') {
+            var target = mutation.target;
+            if (target.classList && (target.classList.contains('active') || target.classList.contains('open'))) {
+              setTimeout(initMobileSubmenuToggles, 100);
+            }
+          }
+        });
+      });
+      setTimeout(function() {
+        document.querySelectorAll('.mobile-menu, .nav-menu, #navMenu, nav').forEach(function(menu) {
+          observer.observe(menu, { attributes: true, attributeFilter: ['class', 'style'] });
+        });
+      }, 500);
+    })();
+    </script>
+
+    <script id="zappy-navbar-scroll-effect">
+    (function(){var nb=document.querySelector('nav.navbar,.navbar:not(.zappy-catalog-menu)');var cm=document.querySelector('.zappy-catalog-menu');if(!nb)return;var fb='rgba(11,18,32,0.85)';var th=60;nb.style.transition='background 0.3s ease,backdrop-filter 0.3s ease,-webkit-backdrop-filter 0.3s ease,box-shadow 0.3s ease';if(cm)cm.style.transition='background 0.3s ease,backdrop-filter 0.3s ease,-webkit-backdrop-filter 0.3s ease';function onS(){var y=window.scrollY||window.pageYOffset;if(y>th){nb.style.background=fb;nb.style.backdropFilter='blur(12px)';nb.style.webkitBackdropFilter='blur(12px)';nb.style.boxShadow='0 2px 16px rgba(0,0,0,0.12)';if(cm){cm.style.background=fb;cm.style.backdropFilter='blur(12px)';cm.style.webkitBackdropFilter='blur(12px)';}}else{nb.style.background='transparent';nb.style.backdropFilter='none';nb.style.webkitBackdropFilter='none';nb.style.boxShadow='none';if(cm){cm.style.background='transparent';cm.style.backdropFilter='none';cm.style.webkitBackdropFilter='none';}}}window.addEventListener('scroll',onS,{passive:true});onS();})();
+    </script>
+</body>
+</html>
   
   <script>
   <!-- Search handling for e-commerce pages -->
@@ -565,60 +631,5 @@
   </script>
 
     <script src="/script.js"></script>
-
-    <script id="zappy-mobile-submenu-script">
-    (function() {
-      function initMobileSubmenuToggles() {
-        if (window.innerWidth > 768) {
-          document.querySelectorAll('.mobile-submenu-toggle').forEach(function(btn) { btn.remove(); });
-          document.querySelectorAll('.sub-menu.mobile-expanded').forEach(function(menu) { menu.classList.remove('mobile-expanded'); });
-          return;
-        }
-        var items = document.querySelectorAll('.nav-menu li:has(.sub-menu), nav li:has(.sub-menu), .navbar li:has(.sub-menu), #navMenu li:has(.sub-menu)');
-        items.forEach(function(li) {
-          if (li.querySelector('.mobile-submenu-toggle')) return;
-          var submenu = li.querySelector('.sub-menu');
-          var parentLink = li.querySelector(':scope > a');
-          if (!submenu || !parentLink) return;
-          var toggleBtn = document.createElement('button');
-          toggleBtn.className = 'mobile-submenu-toggle';
-          toggleBtn.setAttribute('aria-label', 'Toggle submenu');
-          toggleBtn.setAttribute('type', 'button');
-          parentLink.insertAdjacentElement('afterend', toggleBtn);
-          toggleBtn.addEventListener('click', function(e) {
-            e.preventDefault(); e.stopPropagation();
-            document.querySelectorAll('.sub-menu.mobile-expanded').forEach(function(menu) {
-              if (menu !== submenu) { menu.classList.remove('mobile-expanded'); var t = menu.parentElement.querySelector('.mobile-submenu-toggle'); if(t) t.classList.remove('expanded'); }
-            });
-            submenu.classList.toggle('mobile-expanded');
-            toggleBtn.classList.toggle('expanded');
-          });
-        });
-      }
-      if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initMobileSubmenuToggles); }
-      else { initMobileSubmenuToggles(); }
-      var resizeTimer; window.addEventListener('resize', function() { clearTimeout(resizeTimer); resizeTimer = setTimeout(initMobileSubmenuToggles, 250); });
-      // Re-initialize when mobile menu becomes visible (MutationObserver)
-      var observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-          if (mutation.type === 'attributes') {
-            var target = mutation.target;
-            if (target.classList && (target.classList.contains('active') || target.classList.contains('open'))) {
-              setTimeout(initMobileSubmenuToggles, 100);
-            }
-          }
-        });
-      });
-      setTimeout(function() {
-        document.querySelectorAll('.mobile-menu, .nav-menu, #navMenu, nav').forEach(function(menu) {
-          observer.observe(menu, { attributes: true, attributeFilter: ['class', 'style'] });
-        });
-      }, 500);
-    })();
-    </script>
-
-    <script id="zappy-navbar-scroll-effect">
-    (function(){var nb=document.querySelector('nav.navbar,.navbar:not(.zappy-catalog-menu)');var cm=document.querySelector('.zappy-catalog-menu');if(!nb)return;var fb='rgba(11,18,32,0.85)';var th=60;nb.style.transition='background 0.3s ease,backdrop-filter 0.3s ease,-webkit-backdrop-filter 0.3s ease,box-shadow 0.3s ease';if(cm)cm.style.transition='background 0.3s ease,backdrop-filter 0.3s ease,-webkit-backdrop-filter 0.3s ease';function onS(){var y=window.scrollY||window.pageYOffset;if(y>th){nb.style.background=fb;nb.style.backdropFilter='blur(12px)';nb.style.webkitBackdropFilter='blur(12px)';nb.style.boxShadow='0 2px 16px rgba(0,0,0,0.12)';if(cm){cm.style.background=fb;cm.style.backdropFilter='blur(12px)';cm.style.webkitBackdropFilter='blur(12px)';}}else{nb.style.background='transparent';nb.style.backdropFilter='none';nb.style.webkitBackdropFilter='none';nb.style.boxShadow='none';if(cm){cm.style.background='transparent';cm.style.backdropFilter='none';cm.style.webkitBackdropFilter='none';}}}window.addEventListener('scroll',onS,{passive:true});onS();})();
-    </script>
 </body>
 </html>
