@@ -9444,6 +9444,10 @@ nav.navbar .sub-menu li a:hover { color: var(--nav-text-hover, #2F3CFF) !importa
 /* === NAVBAR STYLE OVERRIDES END === */
 
 
+.index-hero-section .index-hero-section__headline {
+  font-size: 4rem;
+}
+
 /* ========== RTL MOBILE NAVBAR FIX (zappy-rtl-mobile-fix) ========== */
 /* High-specificity rules to ensure RTL positioning wins over any [lang="en"] conflicts */
 /* For RTL sites: hamburger on RIGHT, phone on LEFT (mirror of LTR layout) */
