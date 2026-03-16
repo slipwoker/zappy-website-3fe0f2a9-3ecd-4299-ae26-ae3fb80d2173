@@ -1,59 +1,71 @@
-# Business — Generative Engine Optimization Map
+# מאור נדלן — Generative Engine Optimization Map
+
+> תייצר לי אתר לסוכנות הנדלן שלי
 
 ---
 
 ## Pages
 
 ### בית
-https://example.com
+https://maor-nadlan.zappy5.app
 סוכנות נדלן מאור מתמחה בליווי רוכשי דירה ראשונה והשקעות נדלן חכמות. שירות אישי, ייעוץ מקצועי ומגוון נכסים איכוטיים. התחל את המסע שלך עכשיו!
 
 ### נכסים
-https://example.com/properties
+https://maor-nadlan.zappy5.app/properties
 עיין במגוון נכסים איכותיים למכירה והשקעה. דירות ראשונות, דירות להשקעה ונכסים ייחודיים. סינון חכם, תמונות מקצועיות וכל הפרטים שאתה צריך לקבלת החלטה נכונה.
 
 ### שכונות
-https://example.com/neighborhoods
+https://maor-nadlan.zappy5.app/neighborhoods
 מדריך מקיף לשכונות הטובות ביותר בישראל. מידע על תשתיות, חינוך, תחבורה ואיכות חיים. בחר את השכונה שמתאימה לסגנון החיים שלך ולתקציב שלך בקלות.
 
 ### צור קשר
-https://example.com/contact
+https://maor-nadlan.zappy5.app/contact
 צוות מאור נדלן כאן בשבילך! קבל ייעוץ מקצועי ללא התחייבות, שאל שאלות וגלה איך נוכל לעזור לך למצוא את הנכס המושלם. צור קשר עוד היום ונחזור אליך תוך 24 שעות.
 
 ### Products
-https://example.com/products
+https://maor-nadlan.zappy5.app/products
 המוצרים שלנו - מאור נדלן
 
 ### Product Detail
-https://example.com/product/:slug
+https://maor-nadlan.zappy5.app/product/:slug
 פרטי המוצר - מאור נדלן
 
 ### Category
-https://example.com/category/:slug
+https://maor-nadlan.zappy5.app/category/:slug
 מוצרים - מאור נדלן
 
 ## Legal & Policy
 
 ### Privacy Policy
-https://example.com/privacy
+https://maor-nadlan.zappy5.app/privacy
 Information about how user data is collected, stored, and protected.
 
 ### Terms & Conditions
-https://example.com/terms
+https://maor-nadlan.zappy5.app/terms
 Legal terms describing service usage, rights, and policies.
 
 ### Accessibility Statement
-https://example.com/accessibility
+https://maor-nadlan.zappy5.app/accessibility
 Information about WCAG compliance and accessibility features.
 
 ---
 
 # Business Context (for LLM understanding)
 
-## About Business
+## About מאור נדלן
+תייצר לי אתר לסוכנות הנדלן שלי
+
+## Target Audience
+- רוכשי דירות ראשונים
+- משקיעי נדלן
+- קוני נכסים ריקים
+
+## Industry
+נדלן
+
 ---
 
 # Additional Resources
 
-- **Sitemap**: https://example.com/sitemap.xml
-- **Robots.txt**: https://example.com/robots.txt
+- **Sitemap**: https://maor-nadlan.zappy5.app/sitemap.xml
+- **Robots.txt**: https://maor-nadlan.zappy5.app/robots.txt
