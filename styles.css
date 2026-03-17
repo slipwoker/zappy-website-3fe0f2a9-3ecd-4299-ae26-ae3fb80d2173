@@ -5836,6 +5836,12 @@ nav.navbar .sub-menu li a:hover { color: var(--nav-text-hover, #2F3CFF) !importa
 
 
 
+
+
+
+
+
+
 /* ==ZAPPY V2 E-COMMERCE THEME CSS== */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /* V2 E-COMMERCE CSS - Clean V2 Variables Only                                  */
@@ -7278,6 +7284,7 @@ main.page-container.ecommerce-page,
   text-decoration: line-through;
   margin-inline-start: 9px;
 }
+.product-info .product-short-description { font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; margin: 4px 0 8px; }
 .product-info .product-sku { font-size: 0.875rem; color: var(--text-muted); }
 .product-info .product-category {
   display: inline-block;
