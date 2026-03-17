@@ -1239,6 +1239,12 @@ window.onload = function() {
 ;
 
 ;
+
+;
+
+;
+
+;
 /* ==ZAPPY E-COMMERCE JS START== */
 // E-commerce functionality
 (function() {
@@ -1448,7 +1454,12 @@ function stripHtmlToText(html) {
         }
         if (data.data.catalogMenuEnabled === false) {
           var catalogMenu = document.getElementById('zappy-catalog-menu');
-          if (catalogMenu) catalogMenu.style.setProperty('display', 'none', 'important');
+          if (catalogMenu) {
+            catalogMenu.style.setProperty('display', 'none', 'important');
+            if (typeof setupFixedHeaders === 'function') {
+              setTimeout(setupFixedHeaders, 50);
+            }
+          }
         }
         storeSettingsFetched = true;
       }
@@ -5466,7 +5477,12 @@ async function fetchAdditionalJsSettings(force) {
       // Hide catalog menu if disabled in store settings
       if (data.data.catalogMenuEnabled === false) {
         var catalogMenu = document.getElementById('zappy-catalog-menu');
-        if (catalogMenu) catalogMenu.style.setProperty('display', 'none', 'important');
+        if (catalogMenu) {
+          catalogMenu.style.setProperty('display', 'none', 'important');
+          if (typeof setupFixedHeaders === 'function') {
+            setTimeout(setupFixedHeaders, 50);
+          }
+        }
       }
       // Handle dynamic announcement bar
       handleDynamicAnnouncementBar(data.data.announcementBar);
