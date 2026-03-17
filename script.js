@@ -468,6 +468,773 @@ window.onload = function() {
 ;
 
 ;
+
+
+/* Integration Scripts */
+/* ZAPPY_INTEGRATION_START unknown:setup_contact_form_emails */
+// setup_contact_form_emails functionality
+/* Integration Scripts */
+// setup_contact_form_emails functionality
+// Email integration configured for Zappy Technologies LTD
+
+
+    // Enhanced contact form handling with Elastic Email integration
+    // API URL: http://localhost:5001
+    (function() {
+        // Check if contact form handler is already loaded
+        if (window.zappyContactFormLoaded) {
+            console.log('📧 Zappy contact form already loaded');
+            return;
+        }
+        window.zappyContactFormLoaded = true;
+        
+        // Wait for DOM to be ready before initializing
+        function initContactForm() {
+            console.log('📧 Zappy: Initializing contact form handler...');
+            
+            // Find contact form with multiple selector fallbacks
+            const contactForm = document.querySelector('.contact-form') || 
+                               document.querySelector('form[action*="contact"]') ||
+                               document.querySelector('form#contact') ||
+                               document.querySelector('form#contactForm') ||
+                               document.getElementById('contactForm') ||
+                               document.querySelector('section.contact form') ||
+                               document.querySelector('section#contact form') ||
+                               document.querySelector('form');
+            
+            if (!contactForm) {
+                console.log('⚠️ Zappy: No contact form found on page');
+                return;
+            }
+            
+            console.log('✅ Zappy: Contact form found:', contactForm.className || contactForm.id || 'unnamed form');
+            
+            // Remove any existing submit handlers by cloning the form element
+            const newContactForm = contactForm.cloneNode(true);
+            contactForm.parentNode.replaceChild(newContactForm, contactForm);
+            
+            // Now add our handler to the clean form
+            newContactForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Get form data with multi-value support (checkboxes, multi-selects)
+            const formData = new FormData(this);
+            const data = {};
+            for (const [key, value] of formData.entries()) {
+                if (data[key] !== undefined) {
+                    if (Array.isArray(data[key])) data[key].push(value);
+                    else data[key] = [data[key], value];
+                } else {
+                    data[key] = value;
+                }
+            }
+            
+            // Smart name resolution: name > firstName+lastName > email
+            const _coreNameFields = ['name','firstName','first_name','fname','lastName','last_name','lname'];
+            const _coreEmailFields = ['email','emailAddress','mail','e-mail'];
+            const _corePhoneFields = ['phone','tel','telephone','mobile','cellphone'];
+            const _coreMsgFields = ['message','msg','comments','comment','description','details','notes','body','text','inquiry'];
+            const _coreSubjectFields = ['subject','topic','regarding','re'];
+            const _allCoreFields = [].concat(_coreNameFields, _coreEmailFields, _corePhoneFields, _coreMsgFields, _coreSubjectFields);
+            
+            const name = (data.name || '').trim()
+                || [data.firstName || data.first_name || data.fname || '', data.lastName || data.last_name || data.lname || ''].filter(Boolean).join(' ').trim()
+                || (data.email || data.emailAddress || data.mail || '').trim()
+                || 'Anonymous';
+            
+            const email = (data.email || data.emailAddress || data.mail || data['e-mail'] || '').trim();
+            
+            const phone = data.phone || data.tel || data.telephone || data.mobile || data.cellphone || null;
+            
+            const subject = data.subject || data.topic || data.regarding || data.re || 'Contact Form Submission';
+            
+            // Smart message resolution: use message field, or build summary from all non-core fields
+            let message = (data.message || data.msg || data.comments || data.comment || data.description || data.details || data.notes || data.body || data.text || data.inquiry || '').trim();
+            if (!message) {
+                const extraEntries = Object.entries(data).filter(function(e) { return !_allCoreFields.includes(e[0]); });
+                if (extraEntries.length > 0) {
+                    message = extraEntries.map(function(e) {
+                        const label = e[0].replace(/([A-Z])/g, ' $1').replace(/[_-]/g, ' ').trim();
+                        const val = Array.isArray(e[1]) ? e[1].join(', ') : e[1];
+                        return label + ': ' + val;
+                    }).join('\n');
+                } else {
+                    message = 'Form submission from ' + window.location.pathname;
+                }
+            }
+            
+            // Collect extra fields (anything not in the core set)
+            const extraFields = {};
+            for (const [key, value] of Object.entries(data)) {
+                if (!_allCoreFields.includes(key) && value !== '' && value !== null && value !== undefined) {
+                    extraFields[key] = value;
+                }
+            }
+            
+            if (!email) {
+                console.error('❌ Validation failed: no email found in form data');
+                showNotification('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            // Email validation
+            if (!isValidEmail(email)) {
+                showNotification('Please enter a valid email address', 'error');
+                return;
+            }
+            
+            // Get submit button and show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Sending...';
+            submitBtn.disabled = true;
+            
+            // Add loading animation
+            submitBtn.classList.add('loading');
+            
+            try {
+                // Send to Zappy email API - prefer ZAPPY_API_BASE (set per-deployment) over build-time URL
+                const apiUrl = (window.ZAPPY_API_BASE || 'http://localhost:5001').replace(/\/$/, '');
+                const endpoint = apiUrl + '/api/email/contact-form';
+                
+                // Get current page path for thank you page lookup
+                // In preview mode, use ZAPPY_CONFIG.currentPagePath; otherwise use pathname
+                let currentPagePath = window.location.pathname;
+                if (window.ZAPPY_CONFIG && window.ZAPPY_CONFIG.currentPagePath) {
+                    currentPagePath = window.ZAPPY_CONFIG.currentPagePath;
+                } else {
+                    // Try to extract page from URL query param (fullscreen preview mode)
+                    try {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const pageParam = urlParams.get('page');
+                        if (pageParam) currentPagePath = pageParam;
+                    } catch (e) {}
+                }
+                
+                const payload = {
+                    websiteId: '3fe0f2a9-3ecd-4299-ae26-ae3fb80d2173',
+                    name: name,
+                    email: email,
+                    subject: subject,
+                    message: message,
+                    phone: phone,
+                    currentPagePath: currentPagePath
+                };
+                if (Object.keys(extraFields).length > 0) {
+                    payload.extraFields = extraFields;
+                }
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Check if there's a thank you page to redirect to
+                    if (result.thankYouPagePath && result.ticketNumber) {
+                        console.log('🎁 Redirecting to thank you page:', result.thankYouPagePath);
+                        
+                        // Build the redirect URL based on the current environment
+                        let thankYouUrl;
+                        const ticketParam = 'ticket=' + encodeURIComponent(result.ticketNumber);
+                        
+                        // Check if we're in preview mode (URL contains /preview/ or /preview-fullscreen/)
+                        const isPreviewMode = window.location.pathname.includes('/preview');
+                        
+                        if (isPreviewMode && window.ZAPPY_CONFIG) {
+                            // In preview mode, use the preview URL format
+                            const websiteId = window.ZAPPY_CONFIG.websiteId || '3fe0f2a9-3ecd-4299-ae26-ae3fb80d2173';
+                            const authToken = window.ZAPPY_CONFIG.authToken;
+                            const baseUrl = window.location.origin;
+                            const previewType = window.location.pathname.includes('fullscreen') ? 'preview-fullscreen' : 'preview';
+                            
+                            thankYouUrl = baseUrl + '/api/website/' + previewType + '/' + websiteId + '?page=' + encodeURIComponent(result.thankYouPagePath) + '&' + ticketParam;
+                            if (authToken) {
+                                thankYouUrl += '&auth_token=' + encodeURIComponent(authToken);
+                            }
+                        } else {
+                            // In deployed/production mode, navigate directly to the page
+                            thankYouUrl = result.thankYouPagePath + '?' + ticketParam;
+                        }
+                        
+                        console.log('📍 Navigating to:', thankYouUrl);
+                        window.location.href = thankYouUrl;
+                        return; // Don't show notification since we're redirecting
+                    }
+                    
+                    // No thank you page - show standard notification
+                    showNotification(result.message || 'Thank you for your message! We\'ll get back to you soon.', 'success');
+                    
+                    // Reset form
+                    this.reset();
+                    
+                    // Optional: Show additional success UI
+                    showSuccessModal();
+                } else {
+                    // Error from server
+                    console.error('❌ Server returned error:', result);
+                    showNotification(result.error || 'Failed to send message. Please try again.', 'error');
+                }
+                
+            } catch (error) {
+                console.error('❌ Network error:', error);
+                console.error('Failed to connect to:', 'http://localhost:5001/api/email/contact-form');
+                
+                // Fallback: Show error message and provide alternative contact info
+                showNotification(
+                    'Unable to send message right now. Please try again later or contact us directly.',
+                    'error'
+                );
+                
+                // Show fallback contact info
+                showFallbackContact();
+            } finally {
+                // Reset button state
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+            }
+        });
+        
+        // Email validation helper
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+        
+        // Notification system
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.zappy-notification');
+            existingNotifications.forEach(notification => notification.remove());
+            
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `zappy-notification zappy-notification--${type}`;
+            notification.innerHTML = `
+            <div class="zappy-notification__content">
+                <span class="zappy-notification__icon">
+                    ${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}
+                </span>
+                <span class="zappy-notification__message">${message}</span>
+                <button class="zappy-notification__close" onclick="this.parentElement.parentElement.remove()">×</button>
+            </div>
+            `;
+            
+            // Add styles if not already present
+            if (!document.querySelector('#zappy-notification-styles')) {
+                const styles = document.createElement('style');
+            styles.id = 'zappy-notification-styles';
+            styles.textContent = `
+                .zappy-notification {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    max-width: 400px;
+                    padding: 16px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    z-index: 10000;
+                    animation: slideInRight 0.3s ease-out;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                }
+                
+                .zappy-notification--success {
+                    background-color: #d4edda;
+                    border: 1px solid #c3e6cb;
+                    color: #155724;
+                }
+                
+                .zappy-notification--error {
+                    background-color: #f8d7da;
+                    border: 1px solid #f5c6cb;
+                    color: #721c24;
+                }
+                
+                .zappy-notification--info {
+                    background-color: #d1ecf1;
+                    border: 1px solid #bee5eb;
+                    color: #0c5460;
+                }
+                
+                .zappy-notification__content {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                
+                .zappy-notification__icon {
+                    font-size: 18px;
+                    flex-shrink: 0;
+                }
+                
+                .zappy-notification__message {
+                    flex: 1;
+                    font-size: 14px;
+                    line-height: 1.4;
+                }
+                
+                .zappy-notification__close {
+                    background: none;
+                    border: none;
+                    font-size: 20px;
+                    cursor: pointer;
+                    padding: 0;
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    opacity: 0.7;
+                }
+                
+                .zappy-notification__close:hover {
+                    opacity: 1;
+                }
+                
+                @keyframes slideInRight {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+                
+                .loading {
+                    position: relative;
+                    pointer-events: none;
+                }
+                
+                .loading::after {
+                    content: '';
+                    position: absolute;
+                    width: 16px;
+                    height: 16px;
+                    margin: auto;
+                    border: 2px solid transparent;
+                    border-top-color: currentColor;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                    top: 0;
+                    left: 0;
+                    bottom: 0;
+                    right: 0;
+                }
+                
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(styles);
+        }
+        
+        // Add to page
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 5 seconds for success, 8 seconds for errors
+        const timeout = type === 'error' ? 8000 : 5000;
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.style.animation = 'slideInRight 0.3s ease-out reverse';
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, timeout);
+    }
+    
+    // Success modal for enhanced UX
+    function showSuccessModal() {
+        const modal = document.createElement('div');
+        modal.className = 'zappy-success-modal';
+        modal.innerHTML = `
+            <div class="zappy-success-modal__backdrop" onclick="this.parentElement.remove()">
+                <div class="zappy-success-modal__content" onclick="event.stopPropagation()">
+                    <div class="zappy-success-modal__icon">🎉</div>
+                    <h3>Message Sent Successfully!</h3>
+                    <p>Thank you for reaching out. We've received your message and will get back to you as soon as possible.</p>
+                    <button onclick="this.closest('.zappy-success-modal').remove()" class="zappy-success-modal__button">
+                        Got it!
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Add modal styles
+        if (!document.querySelector('#zappy-modal-styles')) {
+            const styles = document.createElement('style');
+            styles.id = 'zappy-modal-styles';
+            styles.textContent = `
+                .zappy-success-modal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 10001;
+                    animation: fadeIn 0.3s ease-out;
+                }
+                
+                .zappy-success-modal__backdrop {
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0,0,0,0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                }
+                
+                .zappy-success-modal__content {
+                    background: white;
+                    padding: 40px;
+                    border-radius: 12px;
+                    text-align: center;
+                    max-width: 400px;
+                    width: 100%;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                    animation: slideUp 0.3s ease-out;
+                }
+                
+                .zappy-success-modal__icon {
+                    font-size: 48px;
+                    margin-bottom: 20px;
+                }
+                
+                .zappy-success-modal__content h3 {
+                    margin: 0 0 15px 0;
+                    color: #333;
+                    font-size: 24px;
+                }
+                
+                .zappy-success-modal__content p {
+                    margin: 0 0 25px 0;
+                    color: #666;
+                    line-height: 1.5;
+                }
+                
+                .zappy-success-modal__button {
+                    background: #007bff;
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 6px;
+                    font-size: 16px;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                }
+                
+                .zappy-success-modal__button:hover {
+                    background: #0056b3;
+                }
+                
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                
+                @keyframes slideUp {
+                    from { transform: translateY(30px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(styles);
+        }
+        
+        document.body.appendChild(modal);
+        
+        // Auto-close after 5 seconds
+        setTimeout(() => {
+            if (modal.parentElement) {
+                modal.remove();
+            }
+        }, 5000);
+    }
+    
+    // Fallback contact information
+    function showFallbackContact() {
+        const fallback = document.createElement('div');
+        fallback.className = 'zappy-fallback-contact';
+        fallback.innerHTML = `
+            <div class="zappy-fallback-contact__content">
+                <h4>Alternative Contact Methods</h4>
+                <p>If you're having trouble sending your message, you can also reach us at:</p>
+                <div class="zappy-fallback-contact__methods">
+                    <a href="mailto:support@zappy5.com?subject=Contact Form Issue" class="zappy-fallback-contact__method">
+                        📧 support@zappy5.com
+                    </a>
+                </div>
+                <button onclick="this.parentElement.parentElement.remove()" class="zappy-fallback-contact__close">
+                    Close
+                </button>
+            </div>
+        `;
+        
+        // Add fallback styles
+        if (!document.querySelector('#zappy-fallback-styles')) {
+            const styles = document.createElement('style');
+            styles.id = 'zappy-fallback-styles';
+            styles.textContent = `
+                .zappy-fallback-contact {
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    max-width: 350px;
+                    background: white;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    z-index: 10000;
+                    animation: slideInUp 0.3s ease-out;
+                }
+                
+                .zappy-fallback-contact__content {
+                    padding: 20px;
+                }
+                
+                .zappy-fallback-contact__content h4 {
+                    margin: 0 0 10px 0;
+                    color: #333;
+                    font-size: 16px;
+                }
+                
+                .zappy-fallback-contact__content p {
+                    margin: 0 0 15px 0;
+                    color: #666;
+                    font-size: 14px;
+                    line-height: 1.4;
+                }
+                
+                .zappy-fallback-contact__methods {
+                    margin-bottom: 15px;
+                }
+                
+                .zappy-fallback-contact__method {
+                    display: block;
+                    padding: 8px 12px;
+                    background: #f8f9fa;
+                    border: 1px solid #e9ecef;
+                    border-radius: 4px;
+                    text-decoration: none;
+                    color: #495057;
+                    font-size: 14px;
+                    transition: background-color 0.2s;
+                }
+                
+                .zappy-fallback-contact__method:hover {
+                    background: #e9ecef;
+                }
+                
+                .zappy-fallback-contact__close {
+                    background: #6c757d;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    cursor: pointer;
+                    float: right;
+                }
+                
+                @keyframes slideInUp {
+                    from {
+                        transform: translateY(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+            `;
+            document.head.appendChild(styles);
+        }
+        
+        document.body.appendChild(fallback);
+        
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+            if (fallback.parentElement) {
+                fallback.remove();
+            }
+        }, 10000);
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // 🍔 MOBILE MENU TOGGLE HANDLER
+        // ═══════════════════════════════════════════════════════════════
+        (function initMobileMenu() {
+            const mobileToggle = document.getElementById('mobileToggle') || 
+                               document.querySelector('.mobile-toggle') || 
+                               document.querySelector('.hamburger');
+            const navMenu = document.getElementById('navMenu') || 
+                          document.querySelector('.nav-menu') ||
+                          document.querySelector('.navbar-menu');
+            
+            if (mobileToggle && navMenu) {
+                
+                // Toggle menu on button click
+                mobileToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const hamburgerIcon = this.querySelector('.hamburger-icon');
+                    const closeIcon = this.querySelector('.close-icon');
+                    const isActive = this.classList.contains('active');
+                    
+                    if (isActive) {
+                        // Show hamburger, hide X
+                        if (hamburgerIcon) hamburgerIcon.style.display = 'block';
+                        if (closeIcon) closeIcon.style.display = 'none';
+                        this.classList.remove('active');
+                        navMenu.classList.remove('active');
+                        document.body.style.overflow = '';
+                    } else {
+                        // Show X, hide hamburger  
+                        if (hamburgerIcon) hamburgerIcon.style.display = 'none';
+                        if (closeIcon) closeIcon.style.display = 'block';
+                        this.classList.add('active');
+                        navMenu.classList.add('active');
+                        document.body.style.overflow = 'hidden'; // Prevent scroll when menu open
+                    }
+                });
+                
+                // Close menu when clicking a nav link
+                const navLinks = navMenu.querySelectorAll('a');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        const hamburgerIcon = mobileToggle.querySelector('.hamburger-icon');
+                        const closeIcon = mobileToggle.querySelector('.close-icon');
+                        if (hamburgerIcon) hamburgerIcon.style.display = 'block';
+                        if (closeIcon) closeIcon.style.display = 'none';
+                        mobileToggle.classList.remove('active');
+                        navMenu.classList.remove('active');
+                        document.body.style.overflow = '';
+                    });
+                });
+                
+                // Close menu when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (navMenu.classList.contains('active') && 
+                        !navMenu.contains(e.target) && 
+                        !mobileToggle.contains(e.target)) {
+                        const hamburgerIcon = mobileToggle.querySelector('.hamburger-icon');
+                        const closeIcon = mobileToggle.querySelector('.close-icon');
+                        if (hamburgerIcon) hamburgerIcon.style.display = 'block';
+                        if (closeIcon) closeIcon.style.display = 'none';
+                        mobileToggle.classList.remove('active');
+                        navMenu.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                });
+                
+                // Handle escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+                        const hamburgerIcon = mobileToggle.querySelector('.hamburger-icon');
+                        const closeIcon = mobileToggle.querySelector('.close-icon');
+                        if (hamburgerIcon) hamburgerIcon.style.display = 'block';
+                        if (closeIcon) closeIcon.style.display = 'none';
+                        mobileToggle.classList.remove('active');
+                        navMenu.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                });
+                
+                // Phone header button functionality
+                const phoneHeaderBtn = document.querySelector('.phone-header-btn');
+                if (phoneHeaderBtn) {
+                    phoneHeaderBtn.addEventListener('click', function() {
+                        // Dynamically get phone number from existing tel: links on the page
+                        // This ensures the phone button uses the same number as other phone links
+                        // Falls back to [business_phone] placeholder which businessInfoUpdater can replace
+                        const phoneLinks = document.querySelectorAll('a[href^="tel:"]');
+                        const phoneNumber = phoneLinks.length > 0 
+                            ? phoneLinks[0].getAttribute('href').replace('tel:', '')
+                            : '[business_phone]';
+                        window.location.href = 'tel:' + phoneNumber;
+                    });
+                }
+            }
+        })();
+        
+        // ═══════════════════════════════════════════════════════════════
+        // 🔗 DISABLE SOCIAL MEDIA LINKS WITH PLACEHOLDERS
+        // ═══════════════════════════════════════════════════════════════
+        (function disablePlaceholderLinks() {
+            // List of social media placeholders to check for (both old and new formats)
+            const socialPlaceholders = [
+                // New format (handle placeholders within URLs)
+                '[facebook_handle]',
+                '[instagram_handle]',
+                '[whatsapp_handle]',
+                '[twitter_handle]',
+                '[linkedin_handle]',
+                '[youtube_handle]',
+                '[tiktok_handle]',
+                '[pinterest_handle]',
+                // Old format (full URL placeholders)
+                '[social_facebook]',
+                '[social instagram]',
+                '[social_instagram]',
+                '[social whatsapp]',
+                '[social_whatsapp]',
+                '[social_twitter]',
+                '[social_linkedin]',
+                '[social_youtube]',
+                '[social_tiktok]',
+                '[social_pinterest]'
+            ];
+            
+            // Find all links that might contain placeholders
+            const allLinks = document.querySelectorAll('a[href]');
+            
+            allLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                
+                // Check if href contains any placeholder
+                const hasPlaceholder = socialPlaceholders.some(placeholder => 
+                    href && href.includes(placeholder)
+                );
+                
+                if (hasPlaceholder) {
+                    // Prevent navigation
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    });
+                    
+                    // Add visual indication that link is disabled
+                    link.style.cursor = 'not-allowed';
+                    link.style.opacity = '0.6';
+                    link.setAttribute('aria-disabled', 'true');
+                    link.setAttribute('title', 'Social media link not configured');
+                    
+                    // Remove target="_blank" to prevent opening empty tabs
+                    link.removeAttribute('target');
+                    link.removeAttribute('rel');
+                }
+            });
+        })();
+        } // End of initContactForm
+        
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initContactForm);
+        } else {
+            // DOM is already ready, initialize immediately
+            initContactForm();
+        }
+    })(); // End of IIFE
+    
+/* ZAPPY_INTEGRATION_END unknown:setup_contact_form_emails */
+;
 /* ==ZAPPY E-COMMERCE JS START== */
 // E-commerce functionality
 (function() {
@@ -674,6 +1441,10 @@ function stripHtmlToText(html) {
         }
         if (data.data.country) {
           storeCountry = data.data.country;
+        }
+        if (data.data.catalogMenuEnabled === false) {
+          var catalogMenu = document.getElementById('zappy-catalog-menu');
+          if (catalogMenu) catalogMenu.style.setProperty('display', 'none', 'important');
         }
         storeSettingsFetched = true;
       }
@@ -1507,7 +2278,12 @@ function stripHtmlToText(html) {
             var label = attrLabels[key.toLowerCase()] || key;
             var isColor = key.toLowerCase() === 'color';
             if (isColor) {
-              var bgColor = /^#[0-9A-Fa-f]{3,6}$/.test(value) ? value : value.toLowerCase();
+              var bgColor = value;
+              if (!/^#[0-9A-Fa-f]{3,6}$/.test(value)) {
+                var lc = value.toLowerCase();
+                var _clr = {'dark grey':'#555','dark gray':'#555','light grey':'#d3d3d3','light gray':'#d3d3d3','light blue':'lightblue','dark blue':'darkblue','light green':'lightgreen','dark green':'darkgreen','dark red':'darkred','light pink':'lightpink','dark orange':'darkorange','sky blue':'skyblue','royal blue':'royalblue','navy blue':'navy','forest green':'forestgreen','olive green':'olivedrab','hot pink':'hotpink','deep pink':'deeppink','dark violet':'darkviolet','slate grey':'slategrey','slate gray':'slategray','dim grey':'dimgrey','dim gray':'dimgray','off white':'#f5f5f0','burgundy':'#800020','charcoal':'#36454f','champagne':'#f7e7ce','sand':'#c2b280','taupe':'#483c32','wine':'#722f37','rust':'#b7410e','sage':'#bcb88a','mint':'#98ff98','peach':'#ffcba4','cream':'#fffdd0','mauve':'#e0b0ff'};
+                bgColor = _clr[lc] || lc;
+              }
               parts.push('<span class="cart-item-attr"><span class="cart-item-attr-label">' + label + ':</span> <span class="cart-item-color-swatch" title="' + value + '" style="display:inline-block;width:14px;height:14px;border-radius:50%;background-color:' + bgColor + ';border:1px solid rgba(0,0,0,0.15);vertical-align:middle;margin-' + (document.documentElement.dir === 'rtl' ? 'right' : 'left') + ':4px;"></span></span>');
             } else {
               parts.push('<span class="cart-item-attr"><span class="cart-item-attr-label">' + label + ':</span> ' + value + '</span>');
@@ -1712,6 +2488,7 @@ function stripHtmlToText(html) {
         selectedShipping = shippingMethods[0];
         positionAddressSection(shippingMethods[0]);
         updateOrderTotals();
+        updatePlaceOrderState();
       }
     } catch (e) {
       console.error('Failed to load shipping methods', e);
@@ -1766,6 +2543,7 @@ function stripHtmlToText(html) {
       // Auto-select first option
       if (paymentMethods.length > 0) {
         selectedPaymentMethod = paymentMethods[0];
+        updatePlaceOrderState();
       }
     } catch (e) {
       console.error('Failed to load payment methods', e);
@@ -1779,6 +2557,7 @@ function stripHtmlToText(html) {
     document.querySelectorAll('.payment-option').forEach(el => {
       el.classList.toggle('selected', el.dataset.methodId === methodId);
     });
+    updatePlaceOrderState();
   };
   
   // Inline validation helper functions
@@ -1828,26 +2607,39 @@ function stripHtmlToText(html) {
     const placeOrderBtn = document.getElementById('place-order-btn');
     if (!placeOrderBtn) return;
     
-    // Add real-time validation - clear errors when user types
+    // Add real-time validation - clear errors when user types and update Place Order state
     var fieldsToWatch = ['customer-name', 'customer-email', 'customer-phone', 'shipping-street', 'shipping-city'];
     fieldsToWatch.forEach(function(fieldId) {
       var field = document.getElementById(fieldId);
       if (field) {
         field.addEventListener('input', function() {
           clearFieldError(fieldId, fieldId + '-error');
+          updatePlaceOrderState();
         });
       }
     });
     
-    // Clear terms error when checkbox changes
+    // shipping-state is a <select>, so use 'change' instead of 'input'
+    var stateSelect = document.getElementById('shipping-state');
+    if (stateSelect) {
+      stateSelect.addEventListener('change', function() {
+        clearFieldError('shipping-state', 'shipping-state-error');
+        updatePlaceOrderState();
+      });
+    }
+    
+    // Clear terms error when checkbox changes and update Place Order state
     var termsCheckbox = document.getElementById('terms-checkbox');
     if (termsCheckbox) {
       termsCheckbox.addEventListener('change', function() {
         var wrapper = document.querySelector('.terms-checkbox-wrapper');
         if (wrapper) wrapper.classList.remove('has-error');
         clearFieldError('', 'terms-checkbox-error');
+        updatePlaceOrderState();
       });
     }
+    
+    updatePlaceOrderState();
     
     placeOrderBtn.addEventListener('click', async function(e) {
       e.preventDefault();
@@ -2257,6 +3049,7 @@ function stripHtmlToText(html) {
             zipInput.value = defaultAddress.zip;
           }
         }
+        updatePlaceOrderState();
       })
       .catch(function() {
         localStorage.removeItem(tokenKey);
@@ -2410,8 +3203,30 @@ function stripHtmlToText(html) {
   function updatePlaceOrderState() {
     var btn = document.getElementById('place-order-btn');
     if (!btn) return;
-    var allDone = checkoutStepsCompleted.contact && checkoutStepsCompleted.shipping && checkoutStepsCompleted.payment;
-    btn.disabled = !allDone;
+
+    var nameVal = (document.getElementById('customer-name') || {}).value || '';
+    var emailVal = (document.getElementById('customer-email') || {}).value || '';
+    var phoneVal = (document.getElementById('customer-phone') || {}).value || '';
+    var contactOk = nameVal.trim() && emailVal.trim() && isValidEmail(emailVal.trim()) && phoneVal.trim();
+
+    var shippingOk = !!selectedShipping;
+    if (selectedShipping && !selectedShipping.is_pickup) {
+      var streetVal = (document.getElementById('shipping-street') || {}).value || '';
+      var cityVal = (document.getElementById('shipping-city') || {}).value || '';
+      shippingOk = shippingOk && !!streetVal.trim() && !!cityVal.trim();
+      var stateWrapper = document.getElementById('state-wrapper');
+      var stateVal = (document.getElementById('shipping-state') || {}).value || '';
+      if (stateWrapper && stateWrapper.style.display !== 'none') {
+        shippingOk = shippingOk && !!stateVal.trim();
+      }
+    }
+
+    var paymentOk = isPaymentConfigured && !!selectedPaymentMethod;
+
+    var termsBox = document.getElementById('terms-checkbox');
+    var termsOk = termsBox && termsBox.checked;
+
+    btn.disabled = !(contactOk && shippingOk && paymentOk && termsOk);
   }
 
   function updateCheckoutItemsCount() {
@@ -2687,6 +3502,7 @@ function stripHtmlToText(html) {
     }
     positionAddressSection(selectedShipping);
     updateOrderTotals();
+    updatePlaceOrderState();
   };
   
   window.zappyAddToCart = addToCart;
@@ -4643,6 +5459,11 @@ async function fetchAdditionalJsSettings(force) {
       if (data.data.viewToggleEnabled != null) {
         additionalJsViewToggleEnabled = data.data.viewToggleEnabled;
       }
+      // Hide catalog menu if disabled in store settings
+      if (data.data.catalogMenuEnabled === false) {
+        var catalogMenu = document.getElementById('zappy-catalog-menu');
+        if (catalogMenu) catalogMenu.style.setProperty('display', 'none', 'important');
+      }
       // Handle dynamic announcement bar
       handleDynamicAnnouncementBar(data.data.announcementBar);
       additionalJsSettingsFetched = true;
@@ -5223,17 +6044,42 @@ function initTransparentNavbarScrollEffect() {
 
   // On pages without a dark hero, the transparent navbar shows light text on
   // a light background — invisible. Detect this and lock the frosted state.
-  var heroEl = document.querySelector('section[class*="hero"], [data-hero-type]');
+  function srgbLuminance(rv, gv, bv) {
+    rv /= 255; gv /= 255; bv /= 255;
+    rv = rv <= 0.03928 ? rv / 12.92 : Math.pow((rv + 0.055) / 1.055, 2.4);
+    gv = gv <= 0.03928 ? gv / 12.92 : Math.pow((gv + 0.055) / 1.055, 2.4);
+    bv = bv <= 0.03928 ? bv / 12.92 : Math.pow((bv + 0.055) / 1.055, 2.4);
+    return 0.2126 * rv + 0.7152 * gv + 0.0722 * bv;
+  }
+  var heroEl = document.querySelector('section[class*="hero"], [data-hero-type], main > section:first-child');
   var pageHasDarkHero = false;
   if (heroEl) {
     var hCs = getComputedStyle(heroEl);
-    if (hCs.backgroundImage !== 'none' || heroEl.querySelector('[class*="scrim"], [class*="overlay"]')) {
-      pageHasDarkHero = true;
+    var heroBgImg = hCs.backgroundImage;
+    if (heroBgImg && heroBgImg !== 'none') {
+      if (heroBgImg.indexOf('url(') !== -1) {
+        // Photo background — assume dark (typically has dark overlay)
+        pageHasDarkHero = true;
+      } else if (heroBgImg.indexOf('gradient') !== -1) {
+        // CSS gradient — parse RGB stops and calculate average luminance
+        var colorMatches = heroBgImg.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/g);
+        if (colorMatches && colorMatches.length > 0) {
+          var totalLum = 0;
+          for (var ci = 0; ci < colorMatches.length; ci++) {
+            var parts = colorMatches[ci].match(/\d+/g);
+            totalLum += srgbLuminance(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]));
+          }
+          pageHasDarkHero = (totalLum / colorMatches.length) < 0.4;
+        } else {
+          pageHasDarkHero = true;
+        }
+      } else {
+        pageHasDarkHero = true;
+      }
     } else {
       var hBgM = hCs.backgroundColor.match(/\d+/g);
-      if (hBgM) {
-        var hLum = 0.2126 * parseInt(hBgM[0]) / 255 + 0.7152 * parseInt(hBgM[1]) / 255 + 0.0722 * parseInt(hBgM[2]) / 255;
-        if (hLum < 0.4) pageHasDarkHero = true;
+      if (hBgM && hBgM.length >= 3) {
+        pageHasDarkHero = srgbLuminance(parseInt(hBgM[0]), parseInt(hBgM[1]), parseInt(hBgM[2])) < 0.4;
       }
     }
   }
@@ -5910,9 +6756,16 @@ function renderProductDetail(container, product, t) {
     const groupsHtml = hasAttributeGroups
       ? Object.entries(attributeGroups).map(([attrKey, values]) => {
         const label = attrLabels[attrKey.toLowerCase()] || attrKey.charAt(0).toUpperCase() + attrKey.slice(1);
+        const sizeOrder = {'xxxs':0,'xxs':1,'xs':2,'s':3,'m':4,'l':5,'xl':6,'xxl':7,'2xl':7,'xxxl':8,'3xl':8,'4xl':9,'5xl':10};
         const valuesArray = Array.from(values).sort((a, b) => {
-          const numA = parseFloat(a), numB = parseFloat(b);
+          const sa = sizeOrder[String(a).toLowerCase()], sb = sizeOrder[String(b).toLowerCase()];
+          const numA = sa === undefined ? parseFloat(a) : NaN;
+          const numB = sb === undefined ? parseFloat(b) : NaN;
           if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+          if (sa !== undefined && sb !== undefined) return sa - sb;
+          const ca = !isNaN(numA) ? 0 : sa !== undefined ? 1 : 2;
+          const cb = !isNaN(numB) ? 0 : sb !== undefined ? 1 : 2;
+          if (ca !== cb) return ca - cb;
           return String(a).localeCompare(String(b));
         });
         const isColorAttr = attrKey.toLowerCase() === 'color';
@@ -5920,13 +6773,11 @@ function renderProductDetail(container, product, t) {
         const optionsHtml = valuesArray.map(value => {
           // For color attribute, try to use color as background
           if (isColorAttr) {
-            // Use CSS color names directly - they work for common colors like red, blue, green, etc.
-            // For hex values or custom colors, pass through directly
             var bgColor = value;
-            // Check if it looks like a hex color
             if (!/^#[0-9A-Fa-f]{3,6}$/.test(value)) {
-              // Not a hex, use as CSS color name (works for red, blue, green, black, white, etc.)
-              bgColor = value.toLowerCase();
+              var lc = value.toLowerCase();
+              var _clr = {'dark grey':'#555','dark gray':'#555','light grey':'#d3d3d3','light gray':'#d3d3d3','light blue':'lightblue','dark blue':'darkblue','light green':'lightgreen','dark green':'darkgreen','dark red':'darkred','light pink':'lightpink','dark orange':'darkorange','sky blue':'skyblue','royal blue':'royalblue','navy blue':'navy','forest green':'forestgreen','olive green':'olivedrab','sea green':'seagreen','hot pink':'hotpink','deep pink':'deeppink','dark violet':'darkviolet','slate grey':'slategrey','slate gray':'slategray','dim grey':'dimgrey','dim gray':'dimgray','steel blue':'steelblue','pale green':'palegreen','off white':'#f5f5f0','burgundy':'#800020','charcoal':'#36454f','champagne':'#f7e7ce','sand':'#c2b280','taupe':'#483c32','wine':'#722f37','rust':'#b7410e','sage':'#bcb88a','mint':'#98ff98','peach':'#ffcba4','cream':'#fffdd0','mauve':'#e0b0ff'};
+              bgColor = _clr[lc] || lc;
             }
             return '<button type="button" class="variant-option color-swatch" data-attr="' + attrKey + '" data-value="' + value + '" style="background-color: ' + bgColor + ';" title="' + value + '"></button>';
           }
@@ -6829,771 +7680,6 @@ async function loadRelatedProducts(currentProduct, t) {
   }
 }
 /* ==ZAPPY E-COMMERCE JS END== */
-
-/* Integration Scripts */
-/* ZAPPY_INTEGRATION_START unknown:setup_contact_form_emails */
-// setup_contact_form_emails functionality
-/* Integration Scripts */
-// setup_contact_form_emails functionality
-// Email integration configured for Zappy Technologies LTD
-
-
-    // Enhanced contact form handling with Elastic Email integration
-    // API URL: http://localhost:5001
-    (function() {
-        // Check if contact form handler is already loaded
-        if (window.zappyContactFormLoaded) {
-            console.log('📧 Zappy contact form already loaded');
-            return;
-        }
-        window.zappyContactFormLoaded = true;
-        
-        // Wait for DOM to be ready before initializing
-        function initContactForm() {
-            console.log('📧 Zappy: Initializing contact form handler...');
-            
-            // Find contact form with multiple selector fallbacks
-            const contactForm = document.querySelector('.contact-form') || 
-                               document.querySelector('form[action*="contact"]') ||
-                               document.querySelector('form#contact') ||
-                               document.querySelector('form#contactForm') ||
-                               document.getElementById('contactForm') ||
-                               document.querySelector('section.contact form') ||
-                               document.querySelector('section#contact form') ||
-                               document.querySelector('form');
-            
-            if (!contactForm) {
-                console.log('⚠️ Zappy: No contact form found on page');
-                return;
-            }
-            
-            console.log('✅ Zappy: Contact form found:', contactForm.className || contactForm.id || 'unnamed form');
-            
-            // Remove any existing submit handlers by cloning the form element
-            const newContactForm = contactForm.cloneNode(true);
-            contactForm.parentNode.replaceChild(newContactForm, contactForm);
-            
-            // Now add our handler to the clean form
-            newContactForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            // Get form data with multi-value support (checkboxes, multi-selects)
-            const formData = new FormData(this);
-            const data = {};
-            for (const [key, value] of formData.entries()) {
-                if (data[key] !== undefined) {
-                    if (Array.isArray(data[key])) data[key].push(value);
-                    else data[key] = [data[key], value];
-                } else {
-                    data[key] = value;
-                }
-            }
-            
-            // Smart name resolution: name > firstName+lastName > email
-            const _coreNameFields = ['name','firstName','first_name','fname','lastName','last_name','lname'];
-            const _coreEmailFields = ['email','emailAddress','mail','e-mail'];
-            const _corePhoneFields = ['phone','tel','telephone','mobile','cellphone'];
-            const _coreMsgFields = ['message','msg','comments','comment','description','details','notes','body','text','inquiry'];
-            const _coreSubjectFields = ['subject','topic','regarding','re'];
-            const _allCoreFields = [].concat(_coreNameFields, _coreEmailFields, _corePhoneFields, _coreMsgFields, _coreSubjectFields);
-            
-            const name = (data.name || '').trim()
-                || [data.firstName || data.first_name || data.fname || '', data.lastName || data.last_name || data.lname || ''].filter(Boolean).join(' ').trim()
-                || (data.email || data.emailAddress || data.mail || '').trim()
-                || 'Anonymous';
-            
-            const email = (data.email || data.emailAddress || data.mail || data['e-mail'] || '').trim();
-            
-            const phone = data.phone || data.tel || data.telephone || data.mobile || data.cellphone || null;
-            
-            const subject = data.subject || data.topic || data.regarding || data.re || 'Contact Form Submission';
-            
-            // Smart message resolution: use message field, or build summary from all non-core fields
-            let message = (data.message || data.msg || data.comments || data.comment || data.description || data.details || data.notes || data.body || data.text || data.inquiry || '').trim();
-            if (!message) {
-                const extraEntries = Object.entries(data).filter(function(e) { return !_allCoreFields.includes(e[0]); });
-                if (extraEntries.length > 0) {
-                    message = extraEntries.map(function(e) {
-                        const label = e[0].replace(/([A-Z])/g, ' $1').replace(/[_-]/g, ' ').trim();
-                        const val = Array.isArray(e[1]) ? e[1].join(', ') : e[1];
-                        return label + ': ' + val;
-                    }).join('\n');
-                } else {
-                    message = 'Form submission from ' + window.location.pathname;
-                }
-            }
-            
-            // Collect extra fields (anything not in the core set)
-            const extraFields = {};
-            for (const [key, value] of Object.entries(data)) {
-                if (!_allCoreFields.includes(key) && value !== '' && value !== null && value !== undefined) {
-                    extraFields[key] = value;
-                }
-            }
-            
-            if (!email) {
-                console.error('❌ Validation failed: no email found in form data');
-                showNotification('Please fill in all required fields', 'error');
-                return;
-            }
-            
-            // Email validation
-            if (!isValidEmail(email)) {
-                showNotification('Please enter a valid email address', 'error');
-                return;
-            }
-            
-            // Get submit button and show loading state
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Sending...';
-            submitBtn.disabled = true;
-            
-            // Add loading animation
-            submitBtn.classList.add('loading');
-            
-            try {
-                // Send to Zappy email API - prefer ZAPPY_API_BASE (set per-deployment) over build-time URL
-                const apiUrl = (window.ZAPPY_API_BASE || 'http://localhost:5001').replace(/\/$/, '');
-                const endpoint = apiUrl + '/api/email/contact-form';
-                
-                // Get current page path for thank you page lookup
-                // In preview mode, use ZAPPY_CONFIG.currentPagePath; otherwise use pathname
-                let currentPagePath = window.location.pathname;
-                if (window.ZAPPY_CONFIG && window.ZAPPY_CONFIG.currentPagePath) {
-                    currentPagePath = window.ZAPPY_CONFIG.currentPagePath;
-                } else {
-                    // Try to extract page from URL query param (fullscreen preview mode)
-                    try {
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const pageParam = urlParams.get('page');
-                        if (pageParam) currentPagePath = pageParam;
-                    } catch (e) {}
-                }
-                
-                const payload = {
-                    websiteId: '3fe0f2a9-3ecd-4299-ae26-ae3fb80d2173',
-                    name: name,
-                    email: email,
-                    subject: subject,
-                    message: message,
-                    phone: phone,
-                    currentPagePath: currentPagePath
-                };
-                if (Object.keys(extraFields).length > 0) {
-                    payload.extraFields = extraFields;
-                }
-                
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    // Check if there's a thank you page to redirect to
-                    if (result.thankYouPagePath && result.ticketNumber) {
-                        console.log('🎁 Redirecting to thank you page:', result.thankYouPagePath);
-                        
-                        // Build the redirect URL based on the current environment
-                        let thankYouUrl;
-                        const ticketParam = 'ticket=' + encodeURIComponent(result.ticketNumber);
-                        
-                        // Check if we're in preview mode (URL contains /preview/ or /preview-fullscreen/)
-                        const isPreviewMode = window.location.pathname.includes('/preview');
-                        
-                        if (isPreviewMode && window.ZAPPY_CONFIG) {
-                            // In preview mode, use the preview URL format
-                            const websiteId = window.ZAPPY_CONFIG.websiteId || '3fe0f2a9-3ecd-4299-ae26-ae3fb80d2173';
-                            const authToken = window.ZAPPY_CONFIG.authToken;
-                            const baseUrl = window.location.origin;
-                            const previewType = window.location.pathname.includes('fullscreen') ? 'preview-fullscreen' : 'preview';
-                            
-                            thankYouUrl = baseUrl + '/api/website/' + previewType + '/' + websiteId + '?page=' + encodeURIComponent(result.thankYouPagePath) + '&' + ticketParam;
-                            if (authToken) {
-                                thankYouUrl += '&auth_token=' + encodeURIComponent(authToken);
-                            }
-                        } else {
-                            // In deployed/production mode, navigate directly to the page
-                            thankYouUrl = result.thankYouPagePath + '?' + ticketParam;
-                        }
-                        
-                        console.log('📍 Navigating to:', thankYouUrl);
-                        window.location.href = thankYouUrl;
-                        return; // Don't show notification since we're redirecting
-                    }
-                    
-                    // No thank you page - show standard notification
-                    showNotification(result.message || 'Thank you for your message! We\'ll get back to you soon.', 'success');
-                    
-                    // Reset form
-                    this.reset();
-                    
-                    // Optional: Show additional success UI
-                    showSuccessModal();
-                } else {
-                    // Error from server
-                    console.error('❌ Server returned error:', result);
-                    showNotification(result.error || 'Failed to send message. Please try again.', 'error');
-                }
-                
-            } catch (error) {
-                console.error('❌ Network error:', error);
-                console.error('Failed to connect to:', 'http://localhost:5001/api/email/contact-form');
-                
-                // Fallback: Show error message and provide alternative contact info
-                showNotification(
-                    'Unable to send message right now. Please try again later or contact us directly.',
-                    'error'
-                );
-                
-                // Show fallback contact info
-                showFallbackContact();
-            } finally {
-                // Reset button state
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('loading');
-            }
-        });
-        
-        // Email validation helper
-        function isValidEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        }
-        
-        // Notification system
-        function showNotification(message, type = 'info') {
-            // Remove existing notifications
-            const existingNotifications = document.querySelectorAll('.zappy-notification');
-            existingNotifications.forEach(notification => notification.remove());
-            
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.className = `zappy-notification zappy-notification--${type}`;
-            notification.innerHTML = `
-            <div class="zappy-notification__content">
-                <span class="zappy-notification__icon">
-                    ${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}
-                </span>
-                <span class="zappy-notification__message">${message}</span>
-                <button class="zappy-notification__close" onclick="this.parentElement.parentElement.remove()">×</button>
-            </div>
-            `;
-            
-            // Add styles if not already present
-            if (!document.querySelector('#zappy-notification-styles')) {
-                const styles = document.createElement('style');
-            styles.id = 'zappy-notification-styles';
-            styles.textContent = `
-                .zappy-notification {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    max-width: 400px;
-                    padding: 16px;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                    z-index: 10000;
-                    animation: slideInRight 0.3s ease-out;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                }
-                
-                .zappy-notification--success {
-                    background-color: #d4edda;
-                    border: 1px solid #c3e6cb;
-                    color: #155724;
-                }
-                
-                .zappy-notification--error {
-                    background-color: #f8d7da;
-                    border: 1px solid #f5c6cb;
-                    color: #721c24;
-                }
-                
-                .zappy-notification--info {
-                    background-color: #d1ecf1;
-                    border: 1px solid #bee5eb;
-                    color: #0c5460;
-                }
-                
-                .zappy-notification__content {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                }
-                
-                .zappy-notification__icon {
-                    font-size: 18px;
-                    flex-shrink: 0;
-                }
-                
-                .zappy-notification__message {
-                    flex: 1;
-                    font-size: 14px;
-                    line-height: 1.4;
-                }
-                
-                .zappy-notification__close {
-                    background: none;
-                    border: none;
-                    font-size: 20px;
-                    cursor: pointer;
-                    padding: 0;
-                    width: 24px;
-                    height: 24px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    opacity: 0.7;
-                }
-                
-                .zappy-notification__close:hover {
-                    opacity: 1;
-                }
-                
-                @keyframes slideInRight {
-                    from {
-                        transform: translateX(100%);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: translateX(0);
-                        opacity: 1;
-                    }
-                }
-                
-                .loading {
-                    position: relative;
-                    pointer-events: none;
-                }
-                
-                .loading::after {
-                    content: '';
-                    position: absolute;
-                    width: 16px;
-                    height: 16px;
-                    margin: auto;
-                    border: 2px solid transparent;
-                    border-top-color: currentColor;
-                    border-radius: 50%;
-                    animation: spin 1s linear infinite;
-                    top: 0;
-                    left: 0;
-                    bottom: 0;
-                    right: 0;
-                }
-                
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
-            `;
-            document.head.appendChild(styles);
-        }
-        
-        // Add to page
-        document.body.appendChild(notification);
-        
-        // Auto-remove after 5 seconds for success, 8 seconds for errors
-        const timeout = type === 'error' ? 8000 : 5000;
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.style.animation = 'slideInRight 0.3s ease-out reverse';
-                setTimeout(() => notification.remove(), 300);
-            }
-        }, timeout);
-    }
-    
-    // Success modal for enhanced UX
-    function showSuccessModal() {
-        const modal = document.createElement('div');
-        modal.className = 'zappy-success-modal';
-        modal.innerHTML = `
-            <div class="zappy-success-modal__backdrop" onclick="this.parentElement.remove()">
-                <div class="zappy-success-modal__content" onclick="event.stopPropagation()">
-                    <div class="zappy-success-modal__icon">🎉</div>
-                    <h3>Message Sent Successfully!</h3>
-                    <p>Thank you for reaching out. We've received your message and will get back to you as soon as possible.</p>
-                    <button onclick="this.closest('.zappy-success-modal').remove()" class="zappy-success-modal__button">
-                        Got it!
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        // Add modal styles
-        if (!document.querySelector('#zappy-modal-styles')) {
-            const styles = document.createElement('style');
-            styles.id = 'zappy-modal-styles';
-            styles.textContent = `
-                .zappy-success-modal {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    z-index: 10001;
-                    animation: fadeIn 0.3s ease-out;
-                }
-                
-                .zappy-success-modal__backdrop {
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(0,0,0,0.5);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 20px;
-                }
-                
-                .zappy-success-modal__content {
-                    background: white;
-                    padding: 40px;
-                    border-radius: 12px;
-                    text-align: center;
-                    max-width: 400px;
-                    width: 100%;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                    animation: slideUp 0.3s ease-out;
-                }
-                
-                .zappy-success-modal__icon {
-                    font-size: 48px;
-                    margin-bottom: 20px;
-                }
-                
-                .zappy-success-modal__content h3 {
-                    margin: 0 0 15px 0;
-                    color: #333;
-                    font-size: 24px;
-                }
-                
-                .zappy-success-modal__content p {
-                    margin: 0 0 25px 0;
-                    color: #666;
-                    line-height: 1.5;
-                }
-                
-                .zappy-success-modal__button {
-                    background: #007bff;
-                    color: white;
-                    border: none;
-                    padding: 12px 24px;
-                    border-radius: 6px;
-                    font-size: 16px;
-                    cursor: pointer;
-                    transition: background-color 0.2s;
-                }
-                
-                .zappy-success-modal__button:hover {
-                    background: #0056b3;
-                }
-                
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                
-                @keyframes slideUp {
-                    from { transform: translateY(30px); opacity: 0; }
-                    to { transform: translateY(0); opacity: 1; }
-                }
-            `;
-            document.head.appendChild(styles);
-        }
-        
-        document.body.appendChild(modal);
-        
-        // Auto-close after 5 seconds
-        setTimeout(() => {
-            if (modal.parentElement) {
-                modal.remove();
-            }
-        }, 5000);
-    }
-    
-    // Fallback contact information
-    function showFallbackContact() {
-        const fallback = document.createElement('div');
-        fallback.className = 'zappy-fallback-contact';
-        fallback.innerHTML = `
-            <div class="zappy-fallback-contact__content">
-                <h4>Alternative Contact Methods</h4>
-                <p>If you're having trouble sending your message, you can also reach us at:</p>
-                <div class="zappy-fallback-contact__methods">
-                    <a href="mailto:support@zappy5.com?subject=Contact Form Issue" class="zappy-fallback-contact__method">
-                        📧 support@zappy5.com
-                    </a>
-                </div>
-                <button onclick="this.parentElement.parentElement.remove()" class="zappy-fallback-contact__close">
-                    Close
-                </button>
-            </div>
-        `;
-        
-        // Add fallback styles
-        if (!document.querySelector('#zappy-fallback-styles')) {
-            const styles = document.createElement('style');
-            styles.id = 'zappy-fallback-styles';
-            styles.textContent = `
-                .zappy-fallback-contact {
-                    position: fixed;
-                    bottom: 20px;
-                    right: 20px;
-                    max-width: 350px;
-                    background: white;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                    z-index: 10000;
-                    animation: slideInUp 0.3s ease-out;
-                }
-                
-                .zappy-fallback-contact__content {
-                    padding: 20px;
-                }
-                
-                .zappy-fallback-contact__content h4 {
-                    margin: 0 0 10px 0;
-                    color: #333;
-                    font-size: 16px;
-                }
-                
-                .zappy-fallback-contact__content p {
-                    margin: 0 0 15px 0;
-                    color: #666;
-                    font-size: 14px;
-                    line-height: 1.4;
-                }
-                
-                .zappy-fallback-contact__methods {
-                    margin-bottom: 15px;
-                }
-                
-                .zappy-fallback-contact__method {
-                    display: block;
-                    padding: 8px 12px;
-                    background: #f8f9fa;
-                    border: 1px solid #e9ecef;
-                    border-radius: 4px;
-                    text-decoration: none;
-                    color: #495057;
-                    font-size: 14px;
-                    transition: background-color 0.2s;
-                }
-                
-                .zappy-fallback-contact__method:hover {
-                    background: #e9ecef;
-                }
-                
-                .zappy-fallback-contact__close {
-                    background: #6c757d;
-                    color: white;
-                    border: none;
-                    padding: 8px 16px;
-                    border-radius: 4px;
-                    font-size: 12px;
-                    cursor: pointer;
-                    float: right;
-                }
-                
-                @keyframes slideInUp {
-                    from {
-                        transform: translateY(100%);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: translateY(0);
-                        opacity: 1;
-                    }
-                }
-            `;
-            document.head.appendChild(styles);
-        }
-        
-        document.body.appendChild(fallback);
-        
-        // Auto-remove after 10 seconds
-        setTimeout(() => {
-            if (fallback.parentElement) {
-                fallback.remove();
-            }
-        }, 10000);
-        }
-        
-        // ═══════════════════════════════════════════════════════════════
-        // 🍔 MOBILE MENU TOGGLE HANDLER
-        // ═══════════════════════════════════════════════════════════════
-        (function initMobileMenu() {
-            const mobileToggle = document.getElementById('mobileToggle') || 
-                               document.querySelector('.mobile-toggle') || 
-                               document.querySelector('.hamburger');
-            const navMenu = document.getElementById('navMenu') || 
-                          document.querySelector('.nav-menu') ||
-                          document.querySelector('.navbar-menu');
-            
-            if (mobileToggle && navMenu) {
-                
-                // Toggle menu on button click
-                mobileToggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const hamburgerIcon = this.querySelector('.hamburger-icon');
-                    const closeIcon = this.querySelector('.close-icon');
-                    const isActive = this.classList.contains('active');
-                    
-                    if (isActive) {
-                        // Show hamburger, hide X
-                        if (hamburgerIcon) hamburgerIcon.style.display = 'block';
-                        if (closeIcon) closeIcon.style.display = 'none';
-                        this.classList.remove('active');
-                        navMenu.classList.remove('active');
-                        document.body.style.overflow = '';
-                    } else {
-                        // Show X, hide hamburger  
-                        if (hamburgerIcon) hamburgerIcon.style.display = 'none';
-                        if (closeIcon) closeIcon.style.display = 'block';
-                        this.classList.add('active');
-                        navMenu.classList.add('active');
-                        document.body.style.overflow = 'hidden'; // Prevent scroll when menu open
-                    }
-                });
-                
-                // Close menu when clicking a nav link
-                const navLinks = navMenu.querySelectorAll('a');
-                navLinks.forEach(link => {
-                    link.addEventListener('click', function() {
-                        const hamburgerIcon = mobileToggle.querySelector('.hamburger-icon');
-                        const closeIcon = mobileToggle.querySelector('.close-icon');
-                        if (hamburgerIcon) hamburgerIcon.style.display = 'block';
-                        if (closeIcon) closeIcon.style.display = 'none';
-                        mobileToggle.classList.remove('active');
-                        navMenu.classList.remove('active');
-                        document.body.style.overflow = '';
-                    });
-                });
-                
-                // Close menu when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (navMenu.classList.contains('active') && 
-                        !navMenu.contains(e.target) && 
-                        !mobileToggle.contains(e.target)) {
-                        const hamburgerIcon = mobileToggle.querySelector('.hamburger-icon');
-                        const closeIcon = mobileToggle.querySelector('.close-icon');
-                        if (hamburgerIcon) hamburgerIcon.style.display = 'block';
-                        if (closeIcon) closeIcon.style.display = 'none';
-                        mobileToggle.classList.remove('active');
-                        navMenu.classList.remove('active');
-                        document.body.style.overflow = '';
-                    }
-                });
-                
-                // Handle escape key
-                document.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape' && navMenu.classList.contains('active')) {
-                        const hamburgerIcon = mobileToggle.querySelector('.hamburger-icon');
-                        const closeIcon = mobileToggle.querySelector('.close-icon');
-                        if (hamburgerIcon) hamburgerIcon.style.display = 'block';
-                        if (closeIcon) closeIcon.style.display = 'none';
-                        mobileToggle.classList.remove('active');
-                        navMenu.classList.remove('active');
-                        document.body.style.overflow = '';
-                    }
-                });
-                
-                // Phone header button functionality
-                const phoneHeaderBtn = document.querySelector('.phone-header-btn');
-                if (phoneHeaderBtn) {
-                    phoneHeaderBtn.addEventListener('click', function() {
-                        // Dynamically get phone number from existing tel: links on the page
-                        // This ensures the phone button uses the same number as other phone links
-                        // Falls back to [business_phone] placeholder which businessInfoUpdater can replace
-                        const phoneLinks = document.querySelectorAll('a[href^="tel:"]');
-                        const phoneNumber = phoneLinks.length > 0 
-                            ? phoneLinks[0].getAttribute('href').replace('tel:', '')
-                            : '[business_phone]';
-                        window.location.href = 'tel:' + phoneNumber;
-                    });
-                }
-            }
-        })();
-        
-        // ═══════════════════════════════════════════════════════════════
-        // 🔗 DISABLE SOCIAL MEDIA LINKS WITH PLACEHOLDERS
-        // ═══════════════════════════════════════════════════════════════
-        (function disablePlaceholderLinks() {
-            // List of social media placeholders to check for (both old and new formats)
-            const socialPlaceholders = [
-                // New format (handle placeholders within URLs)
-                '[facebook_handle]',
-                '[instagram_handle]',
-                '[whatsapp_handle]',
-                '[twitter_handle]',
-                '[linkedin_handle]',
-                '[youtube_handle]',
-                '[tiktok_handle]',
-                '[pinterest_handle]',
-                // Old format (full URL placeholders)
-                '[social_facebook]',
-                '[social instagram]',
-                '[social_instagram]',
-                '[social whatsapp]',
-                '[social_whatsapp]',
-                '[social_twitter]',
-                '[social_linkedin]',
-                '[social_youtube]',
-                '[social_tiktok]',
-                '[social_pinterest]'
-            ];
-            
-            // Find all links that might contain placeholders
-            const allLinks = document.querySelectorAll('a[href]');
-            
-            allLinks.forEach(link => {
-                const href = link.getAttribute('href');
-                
-                // Check if href contains any placeholder
-                const hasPlaceholder = socialPlaceholders.some(placeholder => 
-                    href && href.includes(placeholder)
-                );
-                
-                if (hasPlaceholder) {
-                    // Prevent navigation
-                    link.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        return false;
-                    });
-                    
-                    // Add visual indication that link is disabled
-                    link.style.cursor = 'not-allowed';
-                    link.style.opacity = '0.6';
-                    link.setAttribute('aria-disabled', 'true');
-                    link.setAttribute('title', 'Social media link not configured');
-                    
-                    // Remove target="_blank" to prevent opening empty tabs
-                    link.removeAttribute('target');
-                    link.removeAttribute('rel');
-                }
-            });
-        })();
-        } // End of initContactForm
-        
-        // Initialize when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initContactForm);
-        } else {
-            // DOM is already ready, initialize immediately
-            initContactForm();
-        }
-    })(); // End of IIFE
-    
-/* ZAPPY_INTEGRATION_END unknown:setup_contact_form_emails */
 
 
 /* ZAPPY_PUBLISHED_LIGHTBOX_RUNTIME */

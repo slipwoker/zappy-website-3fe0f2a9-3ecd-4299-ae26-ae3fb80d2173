@@ -1,6 +1,4 @@
-# מאור נדלן — Generative Engine Optimization Map
-
-> תייצר לי אתר לסוכנות הנדלן שלי
+# Business — Generative Engine Optimization Map
 
 ---
 
@@ -52,17 +50,7 @@ Information about WCAG compliance and accessibility features.
 
 # Business Context (for LLM understanding)
 
-## About מאור נדלן
-תייצר לי אתר לסוכנות הנדלן שלי
-
-## Target Audience
-- רוכשי דירות ראשונים
-- משקיעי נדלן
-- קוני נכסים ריקים
-
-## Industry
-נדלן
-
+## About Business
 ---
 
 # Additional Resources
