@@ -1247,6 +1247,12 @@ window.onload = function() {
 ;
 
 ;
+
+;
+
+;
+
+;
 /* ==ZAPPY E-COMMERCE JS START== */
 // E-commerce functionality
 (function() {
@@ -1454,13 +1460,15 @@ function stripHtmlToText(html) {
         if (data.data.country) {
           storeCountry = data.data.country;
         }
-        if (data.data.catalogMenuEnabled === false) {
-          var catalogMenu = document.getElementById('zappy-catalog-menu');
-          if (catalogMenu) {
+        var catalogMenu = document.getElementById('zappy-catalog-menu');
+        if (catalogMenu) {
+          if (data.data.catalogMenuEnabled === true) {
+            catalogMenu.style.removeProperty('display');
+          } else {
             catalogMenu.style.setProperty('display', 'none', 'important');
-            if (typeof setupFixedHeaders === 'function') {
-              setTimeout(setupFixedHeaders, 50);
-            }
+          }
+          if (typeof setupFixedHeaders === 'function') {
+            setTimeout(setupFixedHeaders, 50);
           }
         }
         storeSettingsFetched = true;
@@ -2218,46 +2226,51 @@ function stripHtmlToText(html) {
       var pricePerUnitHtml = getPricePerUnitHtml(p);
       var priceHtml = showPrice ? '<div class="price">' + displayPrice + '</div>' + pricePerUnitHtml : '';
       
-      var favBtnHtml = '<button class="card-favorite-btn" data-product-id="' + p.id + '" onclick="event.preventDefault(); event.stopPropagation(); toggleCardFavorite(this, \'' + p.id + '\')" title="שמור למועדפים"><svg class="heart-outline" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M14.7917 0.833C12.705 0.833 10.811 2.376 10 4.462C9.189 2.375 7.295 0.833 5.208 0.833C2.337 0.833 0 3.17 0 6.042C0 11.675 8.128 17.767 9.758 18.93L10 19.104L10.243 18.93C11.873 17.767 20 11.674 20 6.042C20 3.17 17.663 0.833 14.792 0.833ZM10 18.078C5.716 14.965 0.833 10.019 0.833 6.042C0.833 3.629 2.796 1.667 5.208 1.667C7.498 1.667 9.583 4.05 9.583 6.667H10.417C10.417 4.05 12.502 1.667 14.792 1.667C17.204 1.667 19.167 3.629 19.167 6.042C19.167 10.019 14.284 14.965 10 18.078Z" fill="currentColor"/></svg><svg class="heart-filled" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20"><path d="M14.7917 0.833C12.705 0.833 10.811 2.376 10 4.462C9.189 2.375 7.295 0.833 5.208 0.833C2.337 0.833 0 3.17 0 6.042C0 11.675 8.128 17.767 9.758 18.93L10 19.104L10.243 18.93C11.873 17.767 20 11.674 20 6.042C20 3.17 17.663 0.833 14.792 0.833Z" fill="#e74c3c"/></svg></button>';
+      var favBtnHtml = isCatalogMode ? '' : '<button type="button" class="card-favorite-btn" data-product-id="' + p.id + '" onclick="event.preventDefault(); event.stopPropagation(); toggleCardFavorite(this, \'' + p.id + '\')" title="שמור למועדפים" aria-pressed="false"><svg class="heart-outline" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M14.7917 0.833C12.705 0.833 10.811 2.376 10 4.462C9.189 2.375 7.295 0.833 5.208 0.833C2.337 0.833 0 3.17 0 6.042C0 11.675 8.128 17.767 9.758 18.93L10 19.104L10.243 18.93C11.873 17.767 20 11.674 20 6.042C20 3.17 17.663 0.833 14.792 0.833ZM10 18.078C5.716 14.965 0.833 10.019 0.833 6.042C0.833 3.629 2.796 1.667 5.208 1.667C7.498 1.667 9.583 4.05 9.583 6.667H10.417C10.417 4.05 12.502 1.667 14.792 1.667C17.204 1.667 19.167 3.629 19.167 6.042C19.167 10.019 14.284 14.965 10 18.078Z" fill="currentColor"/></svg><svg class="heart-filled" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20"><path d="M14.7917 0.833C12.705 0.833 10.811 2.376 10 4.462C9.189 2.375 7.295 0.833 5.208 0.833C2.337 0.833 0 3.17 0 6.042C0 11.675 8.128 17.767 9.758 18.93L10 19.104L10.243 18.93C11.873 17.767 20 11.674 20 6.042C20 3.17 17.663 0.833 14.792 0.833Z" fill="#e74c3c"/></svg></button>';
+      var productHref = '/product/' + (p.slug || p.id);
+      var productCardMediaHtml = '<div class="product-card-media"><a href="' + productHref + '" class="product-card-image-link">' + imageHtml + '</a>' + tagsHtml + favBtnHtml + '</div>';
 
       if (productLayout === 'compact') {
-        cardContent = tagsHtml +
-          '<a href="/product/' + (p.slug || p.id) + '" class="product-card-link">' +
-            imageHtml +
-            '<div class="card-content">' +
-              '<h3>' + p.name + '</h3>' +
-              priceHtml +
-            '</div>' +
-          '</a>' +
-          favBtnHtml;
+        cardContent =
+          '<div class="product-card-inner">' +
+            productCardMediaHtml +
+            '<a href="' + productHref + '" class="product-card-body-link">' +
+              '<div class="card-content">' +
+                '<h3>' + p.name + '</h3>' +
+                priceHtml +
+              '</div>' +
+            '</a>' +
+          '</div>';
       } else if (productLayout === 'detailed') {
         var detailedDesc = stripHtmlToText(p.description || '');
         var actionButton = isCatalogMode
-          ? '<a href="/product/' + (p.slug || p.id) + '" class="add-to-cart view-details-btn">' + localizedViewDetails + '</a>'
+          ? '<a href="' + productHref + '" class="add-to-cart view-details-btn">' + localizedViewDetails + '</a>'
           : '<button class="add-to-cart" onclick="event.stopPropagation(); window.zappyHandleAddToCart(' + JSON.stringify(p).replace(/"/g, '&quot;') + ')">' + localizedAddToCart + '</button>';
-        cardContent = tagsHtml +
-          '<a href="/product/' + (p.slug || p.id) + '" class="product-card-link">' +
-            imageHtml +
-            '<div class="card-content">' +
-              '<h3>' + p.name + '</h3>' +
-              '<p>' + detailedDesc + '</p>' +
-              priceHtml +
-            '</div>' +
-          '</a>' +
-          actionButton +
-          favBtnHtml;
+        cardContent =
+          '<div class="product-card-inner">' +
+            productCardMediaHtml +
+            '<a href="' + productHref + '" class="product-card-body-link">' +
+              '<div class="card-content">' +
+                '<h3>' + p.name + '</h3>' +
+                '<p>' + detailedDesc + '</p>' +
+                priceHtml +
+              '</div>' +
+            '</a>' +
+          '</div>' +
+          actionButton;
       } else {
         var standardDesc = stripHtmlToText(p.description || '');
-        cardContent = tagsHtml +
-          '<a href="/product/' + (p.slug || p.id) + '" class="product-card-link">' +
-            imageHtml +
-            '<div class="card-content">' +
-              '<h3>' + p.name + '</h3>' +
-              '<p>' + standardDesc + '</p>' +
-              priceHtml +
-            '</div>' +
-          '</a>' +
-          favBtnHtml;
+        cardContent =
+          '<div class="product-card-inner">' +
+            productCardMediaHtml +
+            '<a href="' + productHref + '" class="product-card-body-link">' +
+              '<div class="card-content">' +
+                '<h3>' + p.name + '</h3>' +
+                '<p>' + standardDesc + '</p>' +
+                priceHtml +
+              '</div>' +
+            '</a>' +
+          '</div>';
       }
       
       return '<div class="product-card ' + productLayout + '" data-product-id="' + p.id + '">' + cardContent + '</div>';
@@ -2268,6 +2281,48 @@ function stripHtmlToText(html) {
     // Legacy filter buttons removed - sidebar filters handle all filtering
   }
   
+  window.getLegacyColorSwatchHex = function getLegacyColorSwatchHex(colorValue) {
+    var bgColor = String(colorValue || '').trim();
+    if (!/^#[0-9A-Fa-f]{3,8}$/.test(bgColor)) {
+      var lc = bgColor.toLowerCase();
+      var _clr = {'dark grey':'#555','dark gray':'#555','light grey':'#d3d3d3','light gray':'#d3d3d3','light blue':'lightblue','dark blue':'darkblue','light green':'lightgreen','dark green':'darkgreen','dark red':'darkred','light pink':'lightpink','dark orange':'darkorange','sky blue':'skyblue','royal blue':'royalblue','navy blue':'navy','forest green':'forestgreen','olive green':'olivedrab','sea green':'seagreen','hot pink':'hotpink','deep pink':'deeppink','dark violet':'darkviolet','slate grey':'slategrey','slate gray':'slategray','dim grey':'dimgrey','dim gray':'dimgray','steel blue':'steelblue','pale green':'palegreen','off white':'#f5f5f0','burgundy':'#800020','charcoal':'#36454f','champagne':'#f7e7ce','sand':'#c2b280','taupe':'#483c32','wine':'#722f37','rust':'#b7410e','sage':'#bcb88a','mint':'#98ff98','peach':'#ffcba4','cream':'#fffdd0','mauve':'#e0b0ff'};
+      bgColor = _clr[lc] || lc;
+    }
+    if (typeof CSS !== 'undefined' && CSS && typeof CSS.supports === 'function' && !CSS.supports('color', bgColor)) {
+      return '#94a3b8';
+    }
+    return bgColor;
+  };
+
+  window.getConfiguredColorSwatchHex = function getConfiguredColorSwatchHex(source, attrKey, colorValue) {
+    if (!colorValue) return '';
+    if (/^#[0-9A-Fa-f]{3,8}$/.test(String(colorValue).trim())) return String(colorValue).trim();
+
+    var variantConfig = source && (source.variant_config || source.variantConfig);
+    if (typeof variantConfig === 'string') {
+      try { variantConfig = JSON.parse(variantConfig); } catch (e) { variantConfig = null; }
+    }
+    var selections = variantConfig && variantConfig.selections && typeof variantConfig.selections === 'object'
+      ? variantConfig.selections
+      : null;
+    if (selections) {
+      var selectionKey = Object.keys(selections).find(function(key) {
+        return String(key).toLowerCase() === String(attrKey || '').toLowerCase();
+      });
+      var values = selectionKey && Array.isArray(selections[selectionKey] && selections[selectionKey].values)
+        ? selections[selectionKey].values
+        : [];
+      var normalizedValue = String(colorValue).trim().replace(/s+/g, ' ').toLowerCase();
+      var match = values.find(function(value) {
+        var label = typeof value === 'string' ? value : value && value.label;
+        return label && String(label).trim().replace(/s+/g, ' ').toLowerCase() === normalizedValue && value && value.hex;
+      });
+      if (match && match.hex) return match.hex;
+    }
+
+    return window.getLegacyColorSwatchHex(colorValue);
+  };
+
   // Render cart drawer (slide-out panel)
   function renderCartDrawer() {
     const drawerItems = document.getElementById('cart-drawer-items');
@@ -2291,19 +2346,19 @@ function stripHtmlToText(html) {
         var parts = [];
         Object.entries(item.selectedVariant.attributes).forEach(function(entry) {
           var key = entry[0], value = entry[1];
+          var displayValue =
+            item.selectedVariant.attributes_display &&
+            Object.prototype.hasOwnProperty.call(item.selectedVariant.attributes_display, key)
+              ? item.selectedVariant.attributes_display[key]
+              : value;
           if (value) {
             var label = attrLabels[key.toLowerCase()] || key;
-            var isColor = key.toLowerCase() === 'color';
+            var isColor = key.toLowerCase() === 'color' || key.toLowerCase().includes('color');
             if (isColor) {
-              var bgColor = value;
-              if (!/^#[0-9A-Fa-f]{3,6}$/.test(value)) {
-                var lc = value.toLowerCase();
-                var _clr = {'dark grey':'#555','dark gray':'#555','light grey':'#d3d3d3','light gray':'#d3d3d3','light blue':'lightblue','dark blue':'darkblue','light green':'lightgreen','dark green':'darkgreen','dark red':'darkred','light pink':'lightpink','dark orange':'darkorange','sky blue':'skyblue','royal blue':'royalblue','navy blue':'navy','forest green':'forestgreen','olive green':'olivedrab','hot pink':'hotpink','deep pink':'deeppink','dark violet':'darkviolet','slate grey':'slategrey','slate gray':'slategray','dim grey':'dimgrey','dim gray':'dimgray','off white':'#f5f5f0','burgundy':'#800020','charcoal':'#36454f','champagne':'#f7e7ce','sand':'#c2b280','taupe':'#483c32','wine':'#722f37','rust':'#b7410e','sage':'#bcb88a','mint':'#98ff98','peach':'#ffcba4','cream':'#fffdd0','mauve':'#e0b0ff'};
-                bgColor = _clr[lc] || lc;
-              }
-              parts.push('<span class="cart-item-attr"><span class="cart-item-attr-label">' + label + ':</span> <span class="cart-item-color-swatch" title="' + value + '" style="display:inline-block;width:14px;height:14px;border-radius:50%;background-color:' + bgColor + ';border:1px solid rgba(0,0,0,0.15);vertical-align:middle;margin-' + (document.documentElement.dir === 'rtl' ? 'right' : 'left') + ':4px;"></span></span>');
+              var bgColor = window.getConfiguredColorSwatchHex(item, key, value);
+              parts.push('<span class="cart-item-attr"><span class="cart-item-attr-label">' + label + ':</span> <span class="cart-item-color-swatch" title="' + displayValue + '" style="display:inline-block;width:14px;height:14px;border-radius:50%;background-color:' + bgColor + ';border:1px solid rgba(0,0,0,0.15);vertical-align:middle;margin-' + (document.documentElement.dir === 'rtl' ? 'right' : 'left') + ':4px;"></span></span>');
             } else {
-              parts.push('<span class="cart-item-attr"><span class="cart-item-attr-label">' + label + ':</span> ' + value + '</span>');
+              parts.push('<span class="cart-item-attr"><span class="cart-item-attr-label">' + label + ':</span> ' + displayValue + '</span>');
             }
           }
         });
@@ -2636,6 +2691,17 @@ function stripHtmlToText(html) {
       }
     });
     
+    // Check first-order discount when email is entered
+    var emailFieldForFirstOrder = document.getElementById('customer-email');
+    if (emailFieldForFirstOrder) {
+      emailFieldForFirstOrder.addEventListener('blur', function() {
+        var em = emailFieldForFirstOrder.value.trim();
+        if (em && isValidEmail(em)) {
+          checkFirstOrderDiscount(em);
+        }
+      });
+    }
+
     // shipping-state is a <select>, so use 'change' instead of 'input'
     var stateSelect = document.getElementById('shipping-state');
     if (stateSelect) {
@@ -2886,7 +2952,7 @@ function stripHtmlToText(html) {
             shippingMethodName: selectedShipping.name || 'משלוח',
             cart: cart,
             couponCode: appliedCoupon ? appliedCoupon.code : null,
-            couponDiscount: couponDiscount,
+            couponDiscount: couponDiscount + seasonalDiscount + firstOrderDiscount,
             paymentMethodId: selectedPaymentMethod ? selectedPaymentMethod.id : null
           })
         });
@@ -2903,7 +2969,7 @@ function stripHtmlToText(html) {
           // Ensure numeric values are properly parsed (shipping.price may be string from DB)
           const subtotalNum = getCartSubtotal();
           const shippingCostNum = parseFloat(selectedShipping.price) || 0;
-          const discountNum = parseFloat(couponDiscount) || 0;
+          const discountNum = parseFloat(couponDiscount + seasonalDiscount + firstOrderDiscount) || 0;
           const pendingOrderData = {
             cartItems: cart,
             subtotal: subtotalNum,
@@ -3284,7 +3350,95 @@ function stripHtmlToText(html) {
   // Coupon state
   let appliedCoupon = null;
   let couponDiscount = 0;
-  
+
+  // Seasonal discount state
+  let seasonalDiscounts = [];
+  let seasonalDiscount = 0;
+  let seasonalFreeShipping = false;
+
+  // First-order discount state
+  let firstOrderDiscount = 0;
+  let firstOrderFreeShipping = false;
+  let firstOrderApplied = null;
+  let firstOrderCheckedEmail = '';
+
+  async function checkFirstOrderDiscount(email) {
+    if (!email || email === firstOrderCheckedEmail) return;
+    firstOrderCheckedEmail = email;
+    firstOrderDiscount = 0;
+    firstOrderFreeShipping = false;
+    firstOrderApplied = null;
+    try {
+      var subtotal = getCartSubtotal();
+      var res = await fetch(buildApiUrl('/api/ecommerce/storefront/first-order-discount'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ websiteId: websiteId, customerEmail: email, orderSubtotal: subtotal })
+      });
+      var data = await res.json();
+      if (data.success && data.data) {
+        firstOrderDiscount = data.data.totalDiscount || 0;
+        firstOrderFreeShipping = data.data.freeShipping || false;
+        firstOrderApplied = data.data.appliedDiscount || null;
+      }
+    } catch (e) {
+      console.warn('[E-COMMERCE] Failed to check first-order discount', e);
+    }
+    updateOrderTotals();
+  }
+
+  async function fetchSeasonalDiscounts() {
+    try {
+      const res = await fetch(buildApiUrl('/api/ecommerce/storefront/seasonal-discounts?websiteId=' + websiteId));
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        seasonalDiscounts = data.data;
+      }
+    } catch (e) {
+      console.warn('[E-COMMERCE] Failed to load seasonal discounts', e);
+    }
+  }
+
+  function getSeasonalDiscountForProduct(productId) {
+    for (var i = 0; i < seasonalDiscounts.length; i++) {
+      var d = seasonalDiscounts[i];
+      var ids = Array.isArray(d.product_ids) ? d.product_ids : [];
+      if (d.applies_to === 'all' || ids.length === 0 || ids.indexOf(productId) !== -1) {
+        return d;
+      }
+    }
+    return null;
+  }
+
+  function calcSeasonalCartDiscount() {
+    seasonalDiscount = 0;
+    seasonalFreeShipping = false;
+    if (!seasonalDiscounts.length || !cart || !cart.length) return;
+
+    for (var i = 0; i < seasonalDiscounts.length; i++) {
+      var d = seasonalDiscounts[i];
+      var ids = Array.isArray(d.product_ids) ? d.product_ids : [];
+      var appliesToAll = d.applies_to === 'all' || ids.length === 0;
+
+      var eligibleSubtotal = 0;
+      for (var j = 0; j < cart.length; j++) {
+        var item = cart[j];
+        if (appliesToAll || ids.indexOf(item.id) !== -1) {
+          var price = parseFloat(item.sale_price && parseFloat(item.sale_price) < parseFloat(item.price) ? item.sale_price : item.price) || 0;
+          eligibleSubtotal += price * (parseInt(item.quantity) || 1);
+        }
+      }
+
+      if (d.type === 'percentage' && eligibleSubtotal > 0) {
+        seasonalDiscount += (eligibleSubtotal * parseFloat(d.value)) / 100;
+      } else if (d.type === 'fixed' && eligibleSubtotal > 0) {
+        seasonalDiscount += Math.min(parseFloat(d.value), eligibleSubtotal);
+      } else if (d.type === 'free_shipping') {
+        seasonalFreeShipping = true;
+      }
+    }
+  }
+
   // Initialize coupon functionality
   function initCoupon() {
     const toggleBtn = document.getElementById('coupon-toggle-btn');
@@ -3329,13 +3483,16 @@ function stripHtmlToText(html) {
       
       try {
         const subtotal = getCartSubtotal();
+        const emailInput = document.getElementById('customer-email');
+        const customerEmail = emailInput ? emailInput.value.trim() : '';
         const res = await fetch(buildApiUrl('/api/ecommerce/storefront/validate-coupon'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             websiteId: websiteId,
             code: code,
-            subtotal: subtotal
+            subtotal: subtotal,
+            customerEmail: customerEmail || null
           })
         });
         
@@ -3350,6 +3507,10 @@ function stripHtmlToText(html) {
             errorMsg = t.couponExpired || 'Coupon has expired';
           } else if (data.data?.error === 'min_order') {
             errorMsg = (t.couponMinOrder || 'Minimum order amount') + ': ' + t.currency + data.data.minOrderAmount;
+          } else if (data.data?.error === 'not_first_order') {
+            errorMsg = t.couponFirstOrderOnly || (isRTL ? 'קופון זה מיועד להזמנה ראשונה בלבד' : 'This coupon is for first-time customers only');
+          } else if (data.data?.error === 'email_required') {
+            errorMsg = t.couponEmailRequired || (isRTL ? 'נא להזין אימייל כדי להשתמש בקופון זה' : 'Please enter your email to use this coupon');
           }
           
           if (errorEl) {
@@ -3454,8 +3615,16 @@ function stripHtmlToText(html) {
         couponDiscount = subtotal;
       }
     }
+
+    // Calculate seasonal discounts
+    calcSeasonalCartDiscount();
+    if (seasonalFreeShipping || firstOrderFreeShipping) {
+      shippingCost = 0;
+    }
+    var totalDiscount = couponDiscount + seasonalDiscount + firstOrderDiscount;
+    if (totalDiscount > subtotal) totalDiscount = subtotal;
     
-    const total = subtotal + shippingCost - couponDiscount;
+    const total = subtotal + shippingCost - totalDiscount;
     
     // Calculate VAT - prices include VAT
     // VAT rate is fetched from store settings (defaults to 18% for Israel)
@@ -3466,11 +3635,11 @@ function stripHtmlToText(html) {
     if (vatAmountEl) vatAmountEl.textContent = t.currency + vatAmount.toFixed(2);
     if (shippingCostEl) shippingCostEl.textContent = shippingCost === 0 ? (t.free || 'FREE') : t.currency + shippingCost.toFixed(2);
     
-    // Show/hide discount row
+    // Show/hide discount row (coupon + seasonal combined)
     if (discountRow && discountEl) {
-      if (couponDiscount > 0) {
+      if (totalDiscount > 0) {
         discountRow.style.display = 'flex';
-        discountEl.textContent = '-' + t.currency + couponDiscount.toFixed(2);
+        discountEl.textContent = '-' + t.currency + totalDiscount.toFixed(2);
       } else {
         discountRow.style.display = 'none';
       }
@@ -5255,6 +5424,7 @@ function stripHtmlToText(html) {
     initCartDrawer();
     initCheckout();
     initCoupon();
+    fetchSeasonalDiscounts();
     initOrderSuccess();
     initLogin();
     initAccount();
@@ -5416,6 +5586,9 @@ function buildApiUrlWithLang(path) {
 let additionalJsProductLayout = 'standard';
 let additionalJsSettingsFetched = false;
 let additionalJsAllProductsLabel = null;
+let additionalJsProductsMenuLabel = null;
+let additionalJsShowAllProductsSubmenu = true;
+let additionalJsShowStockStatus = true;
 let additionalJsSidebarFiltersConfig = {};
 let additionalJsSortingConfig = {};
 let additionalJsViewToggleEnabled = true;
@@ -5458,6 +5631,7 @@ async function fetchAdditionalJsSettings(force) {
       }
       // Handle custom "Products" nav menu trigger label
       if (data.data.productsMenuLabel) {
+        additionalJsProductsMenuLabel = data.data.productsMenuLabel;
         var productsDropdown = document.querySelector('.zappy-products-dropdown > a');
         if (productsDropdown) {
           // Preserve the dropdown arrow SVG, only replace the text node
@@ -5466,6 +5640,44 @@ async function fetchAdditionalJsSettings(force) {
           productsDropdown.appendChild(document.createTextNode(data.data.productsMenuLabel + ' '));
           if (arrowSvg) productsDropdown.appendChild(arrowSvg);
         }
+        // Update search placeholders to use custom label
+        var isRTLPage = document.documentElement.dir === 'rtl' || document.documentElement.lang === 'he' || document.documentElement.lang === 'ar';
+        var searchPlaceholder = isRTLPage
+          ? ('חיפוש ' + data.data.productsMenuLabel + '...')
+          : ('Search ' + data.data.productsMenuLabel.toLowerCase() + '...');
+        var navSearchInput = document.getElementById('nav-search-input');
+        if (navSearchInput) navSearchInput.placeholder = searchPlaceholder;
+        var mobileSearchInput = document.getElementById('mobile-search-input');
+        if (mobileSearchInput) mobileSearchInput.placeholder = searchPlaceholder;
+        // Update products page title
+        var pageTitle = document.getElementById('products-page-title');
+        if (pageTitle) pageTitle.textContent = data.data.productsMenuLabel;
+      }
+      // Handle show/hide "All Products" submenu item
+      if (data.data.showAllProductsSubmenu === false) {
+        additionalJsShowAllProductsSubmenu = false;
+        // Hide the "All Products" item in nav dropdown
+        var navList = document.getElementById('zappy-nav-category-links');
+        if (navList) {
+          var firstItem = navList.querySelector('li:first-child');
+          if (firstItem) {
+            var firstLink = firstItem.querySelector('a');
+            var href = firstLink ? firstLink.getAttribute('href') : '';
+            if (href === '/products' || href.indexOf('/products') !== -1 || href.indexOf('%2Fproducts') !== -1) {
+              firstItem.style.display = 'none';
+            }
+          }
+        }
+        // Hide the "All Products" link in catalog bar
+        var allProdLink = document.querySelector('.catalog-menu-all');
+        if (allProdLink) allProdLink.style.display = 'none';
+        collapseEmptyProductsDropdown();
+      }
+      // Handle show/hide stock status label
+      if (data.data.showStockStatus === false) {
+        additionalJsShowStockStatus = false;
+        var stockEl = document.getElementById('product-stock-display');
+        if (stockEl) stockEl.style.display = 'none';
       }
       if (data.data.sidebarFiltersConfig) {
         additionalJsSidebarFiltersConfig = data.data.sidebarFiltersConfig;
@@ -5476,13 +5688,28 @@ async function fetchAdditionalJsSettings(force) {
       if (data.data.viewToggleEnabled != null) {
         additionalJsViewToggleEnabled = data.data.viewToggleEnabled;
       }
-      // Hide catalog menu if disabled in store settings
-      if (data.data.catalogMenuEnabled === false) {
-        var catalogMenu = document.getElementById('zappy-catalog-menu');
-        if (catalogMenu) {
+      // Show/hide catalog menu based on store settings
+      var catalogMenu = document.getElementById('zappy-catalog-menu');
+      if (catalogMenu) {
+        if (data.data.catalogMenuEnabled === true) {
+          catalogMenu.style.removeProperty('display');
+        } else {
           catalogMenu.style.setProperty('display', 'none', 'important');
-          if (typeof setupFixedHeaders === 'function') {
-            setTimeout(setupFixedHeaders, 50);
+        }
+        if (typeof setupFixedHeaders === 'function') {
+          setTimeout(setupFixedHeaders, 50);
+        }
+      }
+      // Hide/show featured sections based on store settings
+      var hiddenSections = data.data.hiddenHomeSections || [];
+      var homePageSections = ['featured-products', 'featured-categories'];
+      for (var hi = 0; hi < homePageSections.length; hi++) {
+        var sec = document.getElementById(homePageSections[hi]);
+        if (sec) {
+          if (hiddenSections.indexOf(homePageSections[hi]) !== -1) {
+            sec.style.setProperty('display', 'none', 'important');
+          } else {
+            sec.style.removeProperty('display');
           }
         }
       }
@@ -5744,13 +5971,39 @@ function renderProductGrid(grid, products, t, isFeaturedSection, viewMode) {
     const variantMaxPrice = parseFloat(p.variant_max_price);
     const hasVariantPriceRange = variantCount > 1 && variantPriceCount > 1 && Number.isFinite(variantMinPrice) && Number.isFinite(variantMaxPrice) && variantMinPrice !== variantMaxPrice;
     const startingAtLabel = getEcomText('startingAt', t.startingAt || 'Starting at');
-    const displayPrice = showPrice 
-      ? (hasVariantPriceRange
-        ? startingAtLabel + ' ' + t.currency + variantMinPrice.toFixed(2)
-        : (hasSalePrice 
-          ? t.currency + parseFloat(p.sale_price).toFixed(2) + ' <span class="original-price">' + t.currency + parseFloat(p.price).toFixed(2) + '</span>'
-          : t.currency + parseFloat(p.price).toFixed(2)))
-      : '';
+
+    // Check for seasonal discount on this product
+    var seasonalD = typeof getSeasonalDiscountForProduct === 'function' ? getSeasonalDiscountForProduct(p.id) : null;
+    var effectivePrice = parseFloat(p.price);
+    var effectiveSalePrice = hasSalePrice ? parseFloat(p.sale_price) : null;
+    var seasonalApplied = false;
+
+    if (seasonalD && !hasVariantPriceRange) {
+      var basePrice = effectiveSalePrice !== null ? effectiveSalePrice : effectivePrice;
+      var discountedPrice = basePrice;
+      if (seasonalD.type === 'percentage') {
+        discountedPrice = basePrice - (basePrice * parseFloat(seasonalD.value) / 100);
+      } else if (seasonalD.type === 'fixed') {
+        discountedPrice = Math.max(0, basePrice - parseFloat(seasonalD.value));
+      }
+      if (discountedPrice < basePrice) {
+        seasonalApplied = true;
+        effectiveSalePrice = discountedPrice;
+      }
+    }
+
+    var displayPrice;
+    if (!showPrice) {
+      displayPrice = '';
+    } else if (hasVariantPriceRange) {
+      displayPrice = startingAtLabel + ' ' + t.currency + variantMinPrice.toFixed(2);
+    } else if (seasonalApplied && effectiveSalePrice !== null) {
+      displayPrice = t.currency + effectiveSalePrice.toFixed(2) + ' <span class="original-price">' + t.currency + effectivePrice.toFixed(2) + '</span>';
+    } else if (hasSalePrice) {
+      displayPrice = t.currency + parseFloat(p.sale_price).toFixed(2) + ' <span class="original-price">' + t.currency + parseFloat(p.price).toFixed(2) + '</span>';
+    } else {
+      displayPrice = t.currency + parseFloat(p.price).toFixed(2);
+    }
     
     // Get first image with correct URL in preview/live
     var imageUrl = p.images && p.images[0]
@@ -5785,46 +6038,51 @@ function renderProductGrid(grid, products, t, isFeaturedSection, viewMode) {
     var pricePerUnitHtml = getPricePerUnitHtml(p);
     var priceHtml = showPrice ? '<div class="price">' + displayPrice + '</div>' + pricePerUnitHtml : '';
     
-    var favBtnHtml = '<button class="card-favorite-btn" data-product-id="' + p.id + '" onclick="event.preventDefault(); event.stopPropagation(); toggleCardFavorite(this, \'' + p.id + '\')" title="שמור למועדפים"><svg class="heart-outline" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M14.7917 0.833C12.705 0.833 10.811 2.376 10 4.462C9.189 2.375 7.295 0.833 5.208 0.833C2.337 0.833 0 3.17 0 6.042C0 11.675 8.128 17.767 9.758 18.93L10 19.104L10.243 18.93C11.873 17.767 20 11.674 20 6.042C20 3.17 17.663 0.833 14.792 0.833ZM10 18.078C5.716 14.965 0.833 10.019 0.833 6.042C0.833 3.629 2.796 1.667 5.208 1.667C7.498 1.667 9.583 4.05 9.583 6.667H10.417C10.417 4.05 12.502 1.667 14.792 1.667C17.204 1.667 19.167 3.629 19.167 6.042C19.167 10.019 14.284 14.965 10 18.078Z" fill="currentColor"/></svg><svg class="heart-filled" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20"><path d="M14.7917 0.833C12.705 0.833 10.811 2.376 10 4.462C9.189 2.375 7.295 0.833 5.208 0.833C2.337 0.833 0 3.17 0 6.042C0 11.675 8.128 17.767 9.758 18.93L10 19.104L10.243 18.93C11.873 17.767 20 11.674 20 6.042C20 3.17 17.663 0.833 14.792 0.833Z" fill="#e74c3c"/></svg></button>';
+    var favBtnHtml = isCatalogMode ? '' : '<button type="button" class="card-favorite-btn" data-product-id="' + p.id + '" onclick="event.preventDefault(); event.stopPropagation(); toggleCardFavorite(this, \'' + p.id + '\')" title="שמור למועדפים" aria-pressed="false"><svg class="heart-outline" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M14.7917 0.833C12.705 0.833 10.811 2.376 10 4.462C9.189 2.375 7.295 0.833 5.208 0.833C2.337 0.833 0 3.17 0 6.042C0 11.675 8.128 17.767 9.758 18.93L10 19.104L10.243 18.93C11.873 17.767 20 11.674 20 6.042C20 3.17 17.663 0.833 14.792 0.833ZM10 18.078C5.716 14.965 0.833 10.019 0.833 6.042C0.833 3.629 2.796 1.667 5.208 1.667C7.498 1.667 9.583 4.05 9.583 6.667H10.417C10.417 4.05 12.502 1.667 14.792 1.667C17.204 1.667 19.167 3.629 19.167 6.042C19.167 10.019 14.284 14.965 10 18.078Z" fill="currentColor"/></svg><svg class="heart-filled" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20"><path d="M14.7917 0.833C12.705 0.833 10.811 2.376 10 4.462C9.189 2.375 7.295 0.833 5.208 0.833C2.337 0.833 0 3.17 0 6.042C0 11.675 8.128 17.767 9.758 18.93L10 19.104L10.243 18.93C11.873 17.767 20 11.674 20 6.042C20 3.17 17.663 0.833 14.792 0.833Z" fill="#e74c3c"/></svg></button>';
+    var productHref = '/product/' + (p.slug || p.id);
+    var productCardMediaHtml = '<div class="product-card-media"><a href="' + productHref + '" class="product-card-image-link">' + imageHtml + '</a>' + tagsHtml + favBtnHtml + '</div>';
 
     if (layout === 'compact') {
-      cardContent = tagsHtml +
-        '<a href="/product/' + (p.slug || p.id) + '" class="product-card-link">' +
-          imageHtml +
-          '<div class="card-content">' +
-            '<h3>' + p.name + '</h3>' +
-            priceHtml +
-          '</div>' +
-        '</a>' +
-        favBtnHtml;
+      cardContent =
+        '<div class="product-card-inner">' +
+          productCardMediaHtml +
+          '<a href="' + productHref + '" class="product-card-body-link">' +
+            '<div class="card-content">' +
+              '<h3>' + p.name + '</h3>' +
+              priceHtml +
+            '</div>' +
+          '</a>' +
+        '</div>';
     } else if (layout === 'detailed') {
       var detailedDesc = stripHtmlToText(p.description || '');
       var actionButton = isCatalogMode
-        ? '<a href="/product/' + (p.slug || p.id) + '" class="add-to-cart view-details-btn">' + localizedViewDetails + '</a>'
+        ? '<a href="' + productHref + '" class="add-to-cart view-details-btn">' + localizedViewDetails + '</a>'
         : '<button class="add-to-cart" onclick="event.stopPropagation(); window.zappyHandleAddToCart(' + JSON.stringify(p).replace(/"/g, '&quot;') + ')">' + localizedAddToCart + '</button>';
-      cardContent = tagsHtml +
-        '<a href="/product/' + (p.slug || p.id) + '" class="product-card-link">' +
-          imageHtml +
-          '<div class="card-content">' +
-            '<h3>' + p.name + '</h3>' +
-            '<p>' + detailedDesc + '</p>' +
-            priceHtml +
-          '</div>' +
-        '</a>' +
-        actionButton +
-        favBtnHtml;
+      cardContent =
+        '<div class="product-card-inner">' +
+          productCardMediaHtml +
+          '<a href="' + productHref + '" class="product-card-body-link">' +
+            '<div class="card-content">' +
+              '<h3>' + p.name + '</h3>' +
+              '<p>' + detailedDesc + '</p>' +
+              priceHtml +
+            '</div>' +
+          '</a>' +
+        '</div>' +
+        actionButton;
     } else {
       var standardDesc = stripHtmlToText(p.description || '');
-      cardContent = tagsHtml +
-        '<a href="/product/' + (p.slug || p.id) + '" class="product-card-link">' +
-          imageHtml +
-          '<div class="card-content">' +
-            '<h3>' + p.name + '</h3>' +
-            '<p>' + standardDesc + '</p>' +
-            priceHtml +
-          '</div>' +
-        '</a>' +
-        favBtnHtml;
+      cardContent =
+        '<div class="product-card-inner">' +
+          productCardMediaHtml +
+          '<a href="' + productHref + '" class="product-card-body-link">' +
+            '<div class="card-content">' +
+              '<h3>' + p.name + '</h3>' +
+              '<p>' + standardDesc + '</p>' +
+              priceHtml +
+            '</div>' +
+          '</a>' +
+        '</div>';
     }
     
     return '<div class="product-card ' + layout + '" data-product-id="' + p.id + '">' + cardContent + '</div>';
@@ -5842,7 +6100,10 @@ async function loadCatalogCategories() {
   try {
     var res = await fetch(buildApiUrlWithLang('/api/ecommerce/storefront/categories?websiteId=' + websiteId));
     var data = await res.json();
-    if (!data.success || !data.data?.length) return;
+    if (!data.success || !data.data?.length) {
+      collapseEmptyProductsDropdown();
+      return;
+    }
 
     var allCats = data.data;
     var childrenMap = {};
@@ -5913,6 +6174,40 @@ async function loadCatalogCategories() {
   } catch (e) {
     console.error('Failed to load categories', e);
   }
+  collapseEmptyProductsDropdown();
+}
+
+// When the nav dropdown has zero visible items (showAllProducts hidden + no categories),
+// convert it from a dropdown into a plain link so it doesn't render as an empty menu.
+function collapseEmptyProductsDropdown() {
+  var dropdown = document.querySelector('.zappy-products-dropdown');
+  var collapsed = document.querySelector('[data-zappy-products-collapsed]');
+  var el = dropdown || collapsed;
+  if (!el) return;
+  var navList = el.querySelector('#zappy-nav-category-links') || document.getElementById('zappy-nav-category-links');
+  if (!navList) return;
+
+  var items = navList.querySelectorAll('li');
+  var hasVisible = false;
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].style.display !== 'none') { hasVisible = true; break; }
+  }
+
+  if (!hasVisible && dropdown) {
+    dropdown.classList.remove('menu-item-has-children', 'zappy-products-dropdown');
+    el.setAttribute('data-zappy-products-collapsed', 'true');
+    var arrow = el.querySelector('.dropdown-arrow');
+    if (arrow) arrow.style.display = 'none';
+    var subMenu = el.querySelector('.sub-menu, #zappy-nav-category-links');
+    if (subMenu) subMenu.style.setProperty('display', 'none', 'important');
+  } else if (hasVisible && collapsed) {
+    collapsed.classList.add('menu-item-has-children', 'zappy-products-dropdown');
+    collapsed.removeAttribute('data-zappy-products-collapsed');
+    var arrow2 = collapsed.querySelector('.dropdown-arrow');
+    if (arrow2) arrow2.style.display = '';
+    var subMenu2 = collapsed.querySelector('.sub-menu, #zappy-nav-category-links');
+    if (subMenu2) subMenu2.style.removeProperty('display');
+  }
 }
 
 // Hide sub-navbars (catalog menu & announcement bar) on focused pages
@@ -5962,7 +6257,7 @@ function initTransparentNavbarScrollEffect() {
 
   var cm = document.querySelector('.zappy-catalog-menu');
   // Determine frosted glass color from the page background
-  var bodyBg = getComputedStyle(document.body).backgroundColor || 'rgb(0,0,0)';
+  var bodyBg = getComputedStyle(document.body).backgroundColor || 'rgb(255,255,255)';
   var m = bodyBg.match(/\d+/g);
   var r = m ? parseInt(m[0]) : 0, g = m ? parseInt(m[1]) : 0, b = m ? parseInt(m[2]) : 0;
   var frostedBg = 'rgba(' + r + ',' + g + ',' + b + ',0.85)';
@@ -6720,7 +7015,19 @@ function renderProductDetail(container, product, t) {
     return img;
   }).filter(Boolean);
   const mainImage = images[0] || '';
-  const hasMultipleImages = images.length > 1;
+
+  // Resolve product videos
+  const videos = (product.videos || []).map(function(v) {
+    var resolved = Object.assign({}, v);
+    if (v.type === 'upload' && v.url && window.resolveProductImageUrl) {
+      resolved.url = window.resolveProductImageUrl(v.url);
+    }
+    if (v.type === 'upload' && v.thumbnail && window.resolveProductImageUrl) {
+      resolved.thumbnail = window.resolveProductImageUrl(v.thumbnail);
+    }
+    return resolved;
+  });
+  const hasMedia = images.length > 1 || videos.length > 0;
   const baseInStock = product.stock_status !== 'out_of_stock';
   const hasSalePrice = product.sale_price && parseFloat(product.sale_price) < parseFloat(product.price);
   const basePrice = hasSalePrice ? parseFloat(product.sale_price) : parseFloat(product.price);
@@ -6750,6 +7057,7 @@ function renderProductDetail(container, product, t) {
   if (hasVariants) {
     // Group variants by attribute type to create selection options
     const attributeGroups = {};
+    const attributeDisplayMap = {};
     variants.forEach(variant => {
       if (variant.attributes && variant.is_active !== false) {
         Object.entries(variant.attributes).forEach(([key, value]) => {
@@ -6757,6 +7065,16 @@ function renderProductDetail(container, product, t) {
             attributeGroups[key] = new Set();
           }
           attributeGroups[key].add(value);
+          if (!attributeDisplayMap[key]) {
+            attributeDisplayMap[key] = {};
+          }
+          const displayValue =
+            variant.attributes_display && Object.prototype.hasOwnProperty.call(variant.attributes_display, key)
+              ? variant.attributes_display[key]
+              : value;
+          if (!attributeDisplayMap[key][value]) {
+            attributeDisplayMap[key][value] = displayValue;
+          }
         });
       }
     });
@@ -6790,20 +7108,17 @@ function renderProductDetail(container, product, t) {
           if (ca !== cb) return ca - cb;
           return String(a).localeCompare(String(b));
         });
-        const isColorAttr = attrKey.toLowerCase() === 'color';
+        const isColorAttr = attrKey.toLowerCase() === 'color' || attrKey.toLowerCase().includes('color');
         
         const optionsHtml = valuesArray.map(value => {
-          // For color attribute, try to use color as background
+          const displayValue =
+            (attributeDisplayMap[attrKey] && attributeDisplayMap[attrKey][value]) || value;
+          // For color attribute, prefer configured hex and fall back for older sites.
           if (isColorAttr) {
-            var bgColor = value;
-            if (!/^#[0-9A-Fa-f]{3,6}$/.test(value)) {
-              var lc = value.toLowerCase();
-              var _clr = {'dark grey':'#555','dark gray':'#555','light grey':'#d3d3d3','light gray':'#d3d3d3','light blue':'lightblue','dark blue':'darkblue','light green':'lightgreen','dark green':'darkgreen','dark red':'darkred','light pink':'lightpink','dark orange':'darkorange','sky blue':'skyblue','royal blue':'royalblue','navy blue':'navy','forest green':'forestgreen','olive green':'olivedrab','sea green':'seagreen','hot pink':'hotpink','deep pink':'deeppink','dark violet':'darkviolet','slate grey':'slategrey','slate gray':'slategray','dim grey':'dimgrey','dim gray':'dimgray','steel blue':'steelblue','pale green':'palegreen','off white':'#f5f5f0','burgundy':'#800020','charcoal':'#36454f','champagne':'#f7e7ce','sand':'#c2b280','taupe':'#483c32','wine':'#722f37','rust':'#b7410e','sage':'#bcb88a','mint':'#98ff98','peach':'#ffcba4','cream':'#fffdd0','mauve':'#e0b0ff'};
-              bgColor = _clr[lc] || lc;
-            }
-            return '<button type="button" class="variant-option color-swatch" data-attr="' + attrKey + '" data-value="' + value + '" style="background-color: ' + bgColor + ';" title="' + value + '"></button>';
+            var bgColor = window.getConfiguredColorSwatchHex(product, attrKey, value);
+            return '<button type="button" class="variant-option color-swatch" data-attr="' + attrKey + '" data-value="' + value + '" data-display-value="' + displayValue + '" data-color-hex="' + bgColor + '" style="background-color: ' + bgColor + ';" title="' + displayValue + '"></button>';
           }
-          return '<button type="button" class="variant-option" data-attr="' + attrKey + '" data-value="' + value + '">' + value + '</button>';
+          return '<button type="button" class="variant-option" data-attr="' + attrKey + '" data-value="' + value + '" data-display-value="' + displayValue + '">' + displayValue + '</button>';
         }).join('');
         
         return '<div class="variant-group" data-group="' + attrKey + '"><label class="variant-group-label">' + label + ': <span class="variant-selected-value"></span></label><div class="variant-options">' + optionsHtml + '</div></div>';
@@ -6820,11 +7135,12 @@ function renderProductDetail(container, product, t) {
     variantSelectorHtml = '<div class="product-variants" id="product-variants">' + groupsHtml + '</div>';
   }
   
-  // Build breadcrumb
+  // Build breadcrumb (use custom products label if set via store settings)
+  var productsLabel = (typeof additionalJsProductsMenuLabel === 'string' && additionalJsProductsMenuLabel) ? additionalJsProductsMenuLabel : t.products;
   var breadcrumbHtml = '<nav class="product-breadcrumb">';
   breadcrumbHtml += '<a href="/">' + t.home + '</a>';
   breadcrumbHtml += '<span class="breadcrumb-separator">›</span>';
-  breadcrumbHtml += '<a href="/products">' + t.products + '</a>';
+  breadcrumbHtml += '<a href="/products">' + productsLabel + '</a>';
   if (product.category_name) {
     breadcrumbHtml += '<span class="breadcrumb-separator">›</span>';
     if (product.category_id) {
@@ -6837,6 +7153,33 @@ function renderProductDetail(container, product, t) {
   breadcrumbHtml += '<span class="breadcrumb-current">' + product.name + '</span>';
   breadcrumbHtml += '</nav>';
   
+  // Build video thumbnails HTML
+  var videoThumbsHtml = videos.map(function(v, i) {
+    var thumb = '';
+    if (v.type === 'youtube') {
+      var ytId = v.videoId || '';
+      if (!ytId && v.url) {
+        var _yp = v.url.split('v='); if (_yp[1]) ytId = _yp[1].split('&')[0].substring(0,11);
+        if (!ytId) { _yp = v.url.split('youtu.be/'); if (_yp[1]) ytId = _yp[1].split('?')[0].substring(0,11); }
+      }
+      thumb = 'https://img.youtube.com/vi/' + ytId + '/mqdefault.jpg';
+    } else if (v.type === 'vimeo') {
+      thumb = v.thumbnail || '';
+    } else if (v.type === 'upload') {
+      thumb = v.thumbnail || '';
+    }
+    var dataAttr = 'data-video-index="' + i + '"';
+    var thumbContent = thumb
+      ? '<img src="' + thumb + '" alt="Video" style="width:100%;height:100%;object-fit:cover;" />'
+      : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#1a1a2e;color:#fff;font-size:20px;">▶</div>';
+    return '<div class="product-gallery-thumb product-video-thumb" ' + dataAttr + ' onclick="openVideoModal(' + i + ')" style="position:relative;cursor:pointer;">'
+      + thumbContent
+      + '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">'
+      + '<div style="width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>'
+      + '</div></div></div>';
+  }).join('');
+
   container.innerHTML = `
     ${breadcrumbHtml}
     <div class="product-detail-container">
@@ -6845,22 +7188,30 @@ function renderProductDetail(container, product, t) {
           ? '<img src="' + mainImage + '" alt="' + product.name + '" class="product-gallery-main" id="product-main-image">'
           : '<div class="product-gallery-main" style="display:flex;align-items:center;justify-content:center;color:#999;font-size:64px;">📦</div>'
         }
-        ${hasMultipleImages ? `
+        ${hasMedia ? `
           <div class="product-gallery-thumbs">
             ${images.map((img, i) => `
               <img src="${img}" alt="${product.name}" class="product-gallery-thumb ${i === 0 ? 'active' : ''}" onclick="changeMainImage(this, '${img}')" />
             `).join('')}
+            ${videoThumbsHtml}
           </div>
         ` : ''}
       </div>
+    <!-- Video Modal -->
+    <div id="product-video-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;" onclick="closeVideoModal()">
+      <div style="position:relative;width:90%;max-width:800px;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;" onclick="event.stopPropagation();">
+        <div id="product-video-modal-content" style="width:100%;height:100%;"></div>
+        <button onclick="closeVideoModal()" style="position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);z-index:1;">✕</button>
+      </div>
+    </div>
       <div class="product-info">
         <div class="product-title-row">
           <h1>${product.name}</h1>
           <div class="product-icon-actions">
-            <button class="icon-btn favorite-btn" id="favorite-btn" onclick="toggleFavorite('${product.id}')" title="${t.saveToFavorites}">
+            ${!isCatalogMode ? `<button class="icon-btn favorite-btn" id="favorite-btn" onclick="toggleFavorite('${product.id}')" title="${t.saveToFavorites}">
               <svg class="heart-outline" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"><g clip-path="url(#clip0_fav)"><path d="M14.7917 0.833496C12.705 0.833496 10.8108 2.376 10 4.46183C9.18917 2.37516 7.295 0.833496 5.20833 0.833496C2.33667 0.833496 0 3.17016 0 6.04183C0 11.6752 8.12833 17.7668 9.7575 18.9302L10 19.1035L10.2425 18.9302C11.8725 17.7668 20 11.6743 20 6.04183C20 3.17016 17.6633 0.833496 14.7917 0.833496ZM10 18.0777C5.71583 14.9652 0.833333 10.0185 0.833333 6.04183C0.833333 3.62933 2.79583 1.66683 5.20833 1.66683C7.49833 1.66683 9.58333 4.05016 9.58333 6.66683H10.4167C10.4167 4.05016 12.5017 1.66683 14.7917 1.66683C17.2042 1.66683 19.1667 3.62933 19.1667 6.04183C19.1667 10.0185 14.2842 14.9652 10 18.0777Z" fill="currentColor"/></g><defs><clipPath id="clip0_fav"><rect width="20" height="20" fill="white"/></clipPath></defs></svg>
               <svg class="heart-filled" style="display:none;" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"><g clip-path="url(#clip1_fav)"><path d="M14.7917 0.833496C12.705 0.833496 10.8108 2.376 10 4.46183C9.18917 2.37516 7.295 0.833496 5.20833 0.833496C2.33667 0.833496 0 3.17016 0 6.04183C0 11.6752 8.12833 17.7668 9.7575 18.9302L10 19.1035L10.2425 18.9302C11.8725 17.7668 20 11.6743 20 6.04183C20 3.17016 17.6633 0.833496 14.7917 0.833496Z" fill="#e74c3c"/></g><defs><clipPath id="clip1_fav"><rect width="20" height="20" fill="white"/></clipPath></defs></svg>
-            </button>
+            </button>` : ''}
             <button class="icon-btn share-btn" onclick="shareProduct()" title="${t.shareProduct}">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M15.625 12.25C14.383 12.25 13.3075 12.9318 12.721 13.9338L7.348 11.563C7.59625 11.0935 7.75 10.567 7.75 9.99925C7.75 9.4315 7.59625 8.90575 7.348 8.4355L12.721 6.06475C13.3068 7.06675 14.3822 7.7485 15.625 7.7485C17.4858 7.7485 19 6.23425 19 4.3735C19 2.51275 17.4858 1 15.625 1C13.7642 1 12.25 2.51425 12.25 4.375C12.25 4.72675 12.319 5.05975 12.4195 5.37925L6.91825 7.80625C6.29875 7.08925 5.39425 6.625 4.375 6.625C2.51425 6.625 1 8.13925 1 10C1 11.8608 2.51425 13.375 4.375 13.375C5.395 13.375 6.2995 12.9108 6.91825 12.1938L12.4195 14.6207C12.319 14.9402 12.25 15.2732 12.25 15.625C12.25 17.4858 13.7642 19 15.625 19C17.4858 19 19 17.4858 19 15.625C19 13.7642 17.4858 12.25 15.625 12.25ZM15.625 1.75C17.0725 1.75 18.25 2.9275 18.25 4.375C18.25 5.8225 17.0725 7 15.625 7C14.1775 7 13 5.8225 13 4.375C13 2.9275 14.1775 1.75 15.625 1.75ZM4.375 12.625C2.9275 12.625 1.75 11.4475 1.75 10C1.75 8.5525 2.9275 7.375 4.375 7.375C5.8225 7.375 7 8.5525 7 10C7 11.4475 5.8225 12.625 4.375 12.625ZM15.625 18.25C14.1775 18.25 13 17.0725 13 15.625C13 14.1775 14.1775 13 15.625 13C17.0725 13 18.25 14.1775 18.25 15.625C18.25 17.0725 17.0725 18.25 15.625 18.25Z" fill="currentColor"/></svg>
             </button>
@@ -7020,10 +7371,55 @@ function renderProductDetail(container, product, t) {
 function changeMainImage(thumb, src) {
   const mainImg = document.getElementById('product-main-image');
   if (mainImg) mainImg.src = src;
-  
-  // Update active thumb
+
   document.querySelectorAll('.product-gallery-thumb').forEach(t => t.classList.remove('active'));
   thumb.classList.add('active');
+}
+
+function openVideoModal(videoIndex) {
+  var videos = (window.currentProduct && window.currentProduct.videos) || [];
+  var v = videos[videoIndex];
+  if (!v) return;
+  var modal = document.getElementById('product-video-modal');
+  var content = document.getElementById('product-video-modal-content');
+  if (!modal || !content) return;
+
+  var html = '';
+  if (v.type === 'youtube') {
+    var ytId = v.videoId || '';
+    if (!ytId && v.url) {
+      var ytParts = v.url.split('v='); if (ytParts[1]) ytId = ytParts[1].split('&')[0].substring(0,11);
+      if (!ytId) { ytParts = v.url.split('youtu.be/'); if (ytParts[1]) ytId = ytParts[1].split('?')[0].substring(0,11); }
+    }
+    html = '<iframe src="https://www.youtube.com/embed/' + ytId + '?autoplay=1&rel=0" style="width:100%;height:100%;border:none;" allow="autoplay;fullscreen;encrypted-media" allowfullscreen></iframe>';
+  } else if (v.type === 'vimeo') {
+    var vimeoId = v.videoId || '';
+    if (!vimeoId && v.url) {
+      var vmParts = v.url.split('vimeo.com/'); if (vmParts[1]) vimeoId = vmParts[1].split('?')[0].split('/')[0];
+    }
+    html = '<iframe src="https://player.vimeo.com/video/' + vimeoId + '?autoplay=1" style="width:100%;height:100%;border:none;" allow="autoplay;fullscreen" allowfullscreen></iframe>';
+  } else if (v.type === 'upload') {
+    var src = v.url;
+    if (window.resolveProductImageUrl) src = window.resolveProductImageUrl(v.url);
+    html = '<video src="' + src + '" style="width:100%;height:100%;object-fit:contain;" controls autoplay></video>';
+  }
+  content.innerHTML = html;
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  document.addEventListener('keydown', _videoModalEscHandler);
+}
+
+function _videoModalEscHandler(e) {
+  if (e.key === 'Escape') closeVideoModal();
+}
+
+function closeVideoModal() {
+  var modal = document.getElementById('product-video-modal');
+  var content = document.getElementById('product-video-modal-content');
+  if (modal) modal.style.display = 'none';
+  if (content) content.innerHTML = '';
+  document.body.style.overflow = '';
+  document.removeEventListener('keydown', _videoModalEscHandler);
 }
 
 function _zappyProductToast(message) {
@@ -7113,19 +7509,24 @@ function toggleCardFavorite(btn, productId) {
 
   if (isActive) {
     btn.classList.remove('active');
+    btn.setAttribute('aria-pressed', 'false');
     fetch(apiBase + '/api/ecommerce/customers/me/favorites/' + productId + '?websiteId=' + wId, {
       method: 'DELETE',
       headers: { 'Authorization': 'Bearer ' + token }
     }).then(function(r) {
       if (r.ok) {
         _zappyProductToast('הוסר מהמועדפים');
-        document.querySelectorAll('.card-favorite-btn[data-product-id="' + productId + '"]').forEach(function(b) { b.classList.remove('active'); });
+        document.querySelectorAll('.card-favorite-btn[data-product-id="' + productId + '"]').forEach(function(b) {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
         var detailBtn = document.getElementById('favorite-btn');
         if (detailBtn) detailBtn.classList.remove('active');
       }
-    }).catch(function() { btn.classList.add('active'); });
+    }).catch(function() { btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true'); });
   } else {
     btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
     fetch(apiBase + '/api/ecommerce/customers/me/favorites', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -7133,11 +7534,14 @@ function toggleCardFavorite(btn, productId) {
     }).then(function(r) {
       if (r.ok) {
         _zappyProductToast('נוסף למועדפים');
-        document.querySelectorAll('.card-favorite-btn[data-product-id="' + productId + '"]').forEach(function(b) { b.classList.add('active'); });
+        document.querySelectorAll('.card-favorite-btn[data-product-id="' + productId + '"]').forEach(function(b) {
+          b.classList.add('active');
+          b.setAttribute('aria-pressed', 'true');
+        });
         var detailBtn = document.getElementById('favorite-btn');
         if (detailBtn) detailBtn.classList.add('active');
       }
-    }).catch(function() { btn.classList.remove('active'); });
+    }).catch(function() { btn.classList.remove('active'); btn.setAttribute('aria-pressed', 'false'); });
   }
 }
 
@@ -7154,8 +7558,13 @@ function _syncCardFavorites() {
       var favIds = (data.favorites || data || []).map(function(f) { return f.product_id || f.productId || f.id; });
       document.querySelectorAll('.card-favorite-btn').forEach(function(btn) {
         var pid = btn.getAttribute('data-product-id');
-        if (favIds.indexOf(pid) !== -1) btn.classList.add('active');
-        else btn.classList.remove('active');
+        if (favIds.indexOf(pid) !== -1) {
+          btn.classList.add('active');
+          btn.setAttribute('aria-pressed', 'true');
+        } else {
+          btn.classList.remove('active');
+          btn.setAttribute('aria-pressed', 'false');
+        }
       });
     }).catch(function() {});
 }
@@ -7355,7 +7764,7 @@ function initVariantSelection(product, t) {
       // Update the variant label to show selected value inline
       var selectedValueSpan = document.querySelector('.variant-group[data-group="' + attrKey + '"] .variant-selected-value');
       if (selectedValueSpan) {
-        selectedValueSpan.textContent = attrValue;
+        selectedValueSpan.textContent = this.getAttribute('data-display-value') || attrValue;
       }
       
       // Update visibility/stock of options in other groups
@@ -7375,7 +7784,7 @@ function initVariantSelection(product, t) {
             firstVisible.classList.add('selected');
             selectedAttributes[otherKey] = firstVisible.getAttribute('data-value');
             var otherValueSpan = document.querySelector('.variant-group[data-group="' + otherKey + '"] .variant-selected-value');
-            if (otherValueSpan) otherValueSpan.textContent = firstVisible.getAttribute('data-value');
+            if (otherValueSpan) otherValueSpan.textContent = firstVisible.getAttribute('data-display-value') || firstVisible.getAttribute('data-value');
             anyAutoSelected = true;
           } else {
             delete selectedAttributes[otherKey];
@@ -7391,7 +7800,7 @@ function initVariantSelection(product, t) {
         btn.classList.add('selected');
         selectedAttributes[attrKey] = attrValue;
         var selectedValueSpanRefresh = document.querySelector('.variant-group[data-group="' + attrKey + '"] .variant-selected-value');
-        if (selectedValueSpanRefresh) selectedValueSpanRefresh.textContent = attrValue;
+        if (selectedValueSpanRefresh) selectedValueSpanRefresh.textContent = btn.getAttribute('data-display-value') || attrValue;
       }
       
       // Find matching variant and update UI
@@ -7512,10 +7921,14 @@ function updateVariantUI(variant, product, t, selectedAttributes) {
     // Update stock status
     const variantInStock = variant.stock_status !== 'out_of_stock';
     if (stockDisplay) {
-      stockDisplay.className = 'product-stock ' + (variantInStock ? 'in-stock' : 'out-of-stock');
-      stockDisplay.innerHTML = variantInStock 
-        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>' + t.inStock
-        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>' + t.outOfStock;
+      if (!additionalJsShowStockStatus) { stockDisplay.style.display = 'none'; }
+      else {
+        stockDisplay.style.display = '';
+        stockDisplay.className = 'product-stock ' + (variantInStock ? 'in-stock' : 'out-of-stock');
+        stockDisplay.innerHTML = variantInStock 
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>' + t.inStock
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>' + t.outOfStock;
+      }
     }
     
     // Update SKU if variant has one
@@ -7561,8 +7974,12 @@ function updateVariantUI(variant, product, t, selectedAttributes) {
     if (allGroupsSelected) {
       // All groups selected but no variant matches - treat as out of stock / unavailable
       if (stockDisplay) {
-        stockDisplay.className = 'product-stock out-of-stock';
-        stockDisplay.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>' + (t.outOfStock || 'Out of Stock');
+        if (!additionalJsShowStockStatus) { stockDisplay.style.display = 'none'; }
+        else {
+          stockDisplay.style.display = '';
+          stockDisplay.className = 'product-stock out-of-stock';
+          stockDisplay.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>' + (t.outOfStock || 'Out of Stock');
+        }
       }
       
       if (addToCartBtn) {
@@ -7585,10 +8002,14 @@ function updateVariantUI(variant, product, t, selectedAttributes) {
       // Reset to base product stock
       const baseInStock = product.stock_status !== 'out_of_stock';
       if (stockDisplay) {
-        stockDisplay.className = 'product-stock ' + (baseInStock ? 'in-stock' : 'out-of-stock');
-        stockDisplay.innerHTML = baseInStock 
-          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>' + t.inStock
-          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>' + t.outOfStock;
+        if (!additionalJsShowStockStatus) { stockDisplay.style.display = 'none'; }
+        else {
+          stockDisplay.style.display = '';
+          stockDisplay.className = 'product-stock ' + (baseInStock ? 'in-stock' : 'out-of-stock');
+          stockDisplay.innerHTML = baseInStock 
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>' + t.inStock
+            : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>' + t.outOfStock;
+        }
       }
       
       if (addToCartBtn) {
@@ -7657,6 +8078,7 @@ function addProductToCart() {
       name: selectedVariant.name,
       sku: selectedVariant.sku,
       attributes: selectedVariant.attributes,
+      attributes_display: selectedVariant.attributes_display || selectedVariant.attributes,
       price: variantPrice
     };
     cartItem.variantName = selectedVariant.name;
@@ -8192,6 +8614,30 @@ async function loadRelatedProducts(currentProduct, t) {
 /* END ZAPPY_FAQ_ACCORDION_TOGGLE */
 
 
+/* ZAPPY_NAV_SCROLL_PADDING */
+(function(){
+  try {
+    if (window.__zappyNavScrollPaddingInit) return;
+    window.__zappyNavScrollPaddingInit = true;
+    function updateScrollPadding() {
+      var nav = document.querySelector('nav.navbar') || document.querySelector('nav') || document.querySelector('header');
+      if (!nav) return;
+      var s = window.getComputedStyle(nav);
+      if (s.position !== 'fixed' && s.position !== 'sticky') return;
+      var h = nav.offsetHeight;
+      if (h > 0) document.documentElement.style.scrollPaddingTop = h + 'px';
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', updateScrollPadding, { once: true });
+    } else {
+      updateScrollPadding();
+    }
+    window.addEventListener('resize', updateScrollPadding, { passive: true });
+  } catch (e) {}
+})();
+/* END ZAPPY_NAV_SCROLL_PADDING */
+
+
 /* ZAPPY_CONTACT_FORM_PREVENT_DEFAULT */
 (function(){
   try {
@@ -8382,6 +8828,10 @@ async function loadRelatedProducts(currentProduct, t) {
             if (!ch || !ch.tagName) continue;
             var tag = ch.tagName.toLowerCase();
             if (tag === 'script' || tag === 'style') continue;
+            if (ch.getAttribute('aria-hidden') === 'true') continue;
+            if (ch.getAttribute('data-zappy-internal') === 'true') continue;
+            var pos = window.getComputedStyle(ch).position;
+            if (pos === 'absolute' || pos === 'fixed') continue;
             items.push(ch);
           }
           var totalItems = items.length;
@@ -8389,6 +8839,8 @@ async function loadRelatedProducts(currentProduct, t) {
 
           var cs = window.getComputedStyle(container);
           if (cs.display !== 'grid') continue;
+          var gta = (cs.gridTemplateAreas || '').trim();
+          if (gta && gta !== 'none') continue;
           var gtc = (cs.gridTemplateColumns || '').trim();
           if (!gtc || gtc === 'none') continue;
           var colWidths = gtc.split(' ').filter(function(v) { return v && parseFloat(v) > 0; });
